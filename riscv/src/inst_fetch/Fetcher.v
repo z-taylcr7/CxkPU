@@ -9,7 +9,7 @@ module Fetcher(
     output reg [`INS_TYPE] inst_to_dec,
     output reg [`ADDR_TYPE] pc_to_dec,
     output reg predicted_jump_to_dec,
-    output reg ok_flag_to_dec,
+    output reg flag_to_dec,
 
     // cache full 
     input wire cache_full,
@@ -53,9 +53,9 @@ always @(posedge clk ) begin
             //predicted_jump_to_dec <= predicted_jump_from_pdc;
             pc <= pc + `NEXT_PC;
             inst_to_dec <= returned_inst;
-            ok_flag_to_dec <= `TRUE;
+            flag_to_dec <= `TRUE;
             end
-        else ok_flag_to_dec<=`FALSE;
+        else flag_to_dec<=`FALSE;
 
 
         drop_flag_to_mc <= `FALSE;
