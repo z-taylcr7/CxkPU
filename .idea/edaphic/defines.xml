@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="SVCompilerDirectivesDefines">
+    <option name="defines">
+      <map>
+        <entry key="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v">
+          <value>
+            <map>
+              <entry key="ICACHE_SIZE">
+                <value>
+                  <list>
+                    <Body>
+                      <option name="offset" value="904" />
+                      <option name="replacementList" value="256" />
+                      <option name="source" value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+                    </Body>
+                  </list>
+                </value>
+              </entry>
+              <entry key="INDEX_RANGE">
+                <value>
+                  <list>
+                    <Body>
+                      <option name="offset" value="928" />
+                      <option name="replacementList" value="9:2" />
+                      <option name="source" value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+                    </Body>
+                  </list>
+                </value>
+              </entry>
+              <entry key="TAG_RANGE">
+                <value>
+                  <list>
+                    <Body>
+                      <option name="offset" value="952" />
+                      <option name="replacementList" value="31:10" />
+                      <option name="source" value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+                    </Body>
+                  </list>
+                </value>
+              </entry>
+            </map>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="dependencies">
+      <map>
+        <entry key="ADDR_TYPE">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+              <option value="/Fetcher.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="INS_TYPE">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+              <option value="/Fetcher.v" />
+            </set>
+          </value>
+        </entry>
+      </map>
+    </option>
+    <option name="status" value="NORMAL" />
+    <option name="version" value="798" />
+  </component>
+</project>
