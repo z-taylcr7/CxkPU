@@ -3,6 +3,67 @@
   <component name="SVCompilerDirectivesDefines">
     <option name="defines">
       <map>
+        <entry key="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v">
+          <value>
+            <map>
+              <entry key="ADC_MSB">
+                <value>
+                  <list>
+                    <Body>
+                      <option name="offset" value="46" />
+                      <option name="replacementList" value="15" />
+                      <option name="source" value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+                    </Body>
+                  </list>
+                </value>
+              </entry>
+              <entry key="DAC_MSB">
+                <value>
+                  <list>
+                    <Body>
+                      <option name="offset" value="28" />
+                      <option name="replacementList" value="7" />
+                      <option name="source" value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+                    </Body>
+                  </list>
+                </value>
+              </entry>
+              <entry key="MSEC">
+                <value>
+                  <list>
+                    <Body>
+                      <option name="offset" value="107" />
+                      <option name="replacementList" value="((1*1000)*1000)" />
+                      <option name="source" value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+                    </Body>
+                  </list>
+                </value>
+              </entry>
+              <entry key="NSEC">
+                <value>
+                  <list>
+                    <Body>
+                      <option name="offset" value="66" />
+                      <option name="replacementList" value="1" />
+                      <option name="source" value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+                    </Body>
+                  </list>
+                </value>
+              </entry>
+              <entry key="USEC">
+                <value>
+                  <list>
+                    <Body>
+                      <option name="offset" value="81" />
+                      <option name="replacementList" value="(1*1000)" />
+                      <option name="source" value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+                    </Body>
+                  </list>
+                </value>
+              </entry>
+            </map>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v">
           <value>
             <map>
@@ -46,19 +107,131 @@
     </option>
     <option name="dependencies">
       <map>
+        <entry key="ADC_MSB">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+            </set>
+          </value>
+        </entry>
         <entry key="ADDR_TYPE">
           <value>
             <set>
-              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
               <option value="/Fetcher.v" />
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="CB_TIME_IS_RELATIVE">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/br_gh184.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="DAC_MSB">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="FALSE">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="ICACHE_SIZE">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="INDEX_RANGE">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
             </set>
           </value>
         </entry>
         <entry key="INS_TYPE">
           <value>
             <set>
-              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
               <option value="/Fetcher.v" />
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="MAKE_CHIP">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/iverilog/iverilog/examples/sqrt-virtex.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="MSEC">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="NEXT_PC">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="NSEC">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="POST_MAP">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/iverilog/iverilog/examples/sqrt-virtex.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="SIMULATE">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/iverilog/iverilog/examples/sqrt-virtex.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="TAG_RANGE">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="TRUE">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="USEC">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/iverilog/iverilog/ivtest/vpi/ports_params.v" />
+            </set>
+          </value>
+        </entry>
+        <entry key="ZERO_WORD">
+          <value>
+            <set>
+              <option value="$PROJECT_DIR$/riscv/src/inst_fetch/Fetcher.v" />
             </set>
           </value>
         </entry>

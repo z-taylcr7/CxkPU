@@ -1,39 +1,33 @@
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include "riscv/src/definition.v"
 module Fetcher(
     input wire clk,
-    //rst is currently false
+    //rst is currently false!
     input wire rst,
     input wire rdy,
 
     // to decoder
     output reg [`INS_TYPE] inst_to_dec,
     output reg [`ADDR_TYPE] pc_to_dec,
-    output reg [`ADDR_TYPE] rollback_pc_to_dec,
     output reg predicted_jump_to_dec,
     output reg ok_flag_to_dec,
 
     // cache full 
-    input wire global_full,
+    input wire cache_full,
 
-
-    
-
-    // port with memctrl
     // to memctrl
     output reg [`ADDR_TYPE] pc_to_mc,
-    output reg ena_to_mc,
+    output reg req_to_mc,
     output reg drop_flag_to_mc,
     // from memctrl
-    input wire ok_flag_from_mc,
+    input wire flag_from_mc,
     input wire [`INS_TYPE] inst_from_mc,
     
-    // with predictor
+    // predictor
     output wire [`ADDR_TYPE] query_pc_to_pdc,
     output wire [`INS_TYPE] query_inst_to_pdc,
-    input wire predicted_jump_from_pdc,
-    input wire [`ADDR_TYPE] predicted_imm_from_pdc
+    input wire predicted_jump_flag_from_pdc
 );
-    parameter FETCH_STATUS=1,STALL_STATUS=0;
+    parameter BUSY_STATUS=1,IDLE_STATUS=0;
     reg[0:0]status;
     reg[`ADDR_TYPE]pc,pc_mem;
 
@@ -50,8 +44,9 @@ assign query_pc_to_pdc = pc;
 assign query_inst_to_pdc = returned_inst;
 
 always @(posedge clk ) begin
-    if rdy begin
-      if (hit && global_full == `FALSE) begin
+    if (rdy) begin
+        if (hit && cache_full == `FALSE) 
+            begin
             // submit the inst to id
             pc_to_dec <= pc;
 
@@ -59,28 +54,28 @@ always @(posedge clk ) begin
             pc <= pc + `NEXT_PC;
             inst_to_dec <= returned_inst;
             ok_flag_to_dec <= `TRUE;
-        end
-        else begin
-          ok_flag_to_dec<=`FALSE;
+            end
+        else ok_flag_to_dec<=`FALSE;
 
-        end
+
         drop_flag_to_mc <= `FALSE;
-        ena_to_mc <= `FALSE;
+        req_to_mc <= `FALSE;
 
-        if (status == STALL_STATUS) begin
-            ena_to_mc <= `TRUE;
-            pc_to_mc <= mem_pc;
-            status <= FETCH_STATUS;
+        if (status == IDLE_STATUS) begin
+            req_to_mc <= `TRUE;
+            pc_to_mc <= pc_mem;
+            status <= BUSY_STATUS;
         end
         else begin
             // memctrl ok
-            if (ok_flag_from_mc) begin
+            if (flag_from_mc) begin
                 // put into icache
-                mem_pc <= ((mem_pc == pc) ? mem_pc + `NEXT_PC : pc);
-                status <= STATUS_IDLE;
-                valid[mem_pc[`INDEX_RANGE]] <= `TRUE;
-                tag_store[mem_pc[`INDEX_RANGE]] <= mem_pc[`TAG_RANGE];
-                data_store[mem_pc[`INDEX_RANGE]] <= inst_from_mc;
+                pc_mem <= ((pc_mem == pc) ? pc_mem + `NEXT_PC : pc);
+                tag_store[pc_mem[`INDEX_RANGE]] <= pc_mem[`TAG_RANGE];
+                data_store[pc_mem[`INDEX_RANGE]] <= inst_from_mc;
+
+                valid[pc_mem[`INDEX_RANGE]] <= `TRUE;
+                status <= IDLE_STATUS;
             end
         end 
     end
