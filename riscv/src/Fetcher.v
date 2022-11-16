@@ -58,13 +58,24 @@ always @(posedge clk ) begin
         pc_to_dec <= `ZERO_ADDR;
         inst_to_dec <= `ZERO_WORD;      
         
-        for (i = 0; i < `ICACHE_SIZE; i=i+1) begin
+        for (i = 0; i < `ICACHE_SIZE; i=i+4) begin
             valid[i] <= `FALSE;
             tag_store[i] <= `ZERO_ADDR;
             data_store[i] <= `ZERO_WORD;
+            valid[i+1] <= `FALSE;
+            tag_store[i+1] <= `ZERO_ADDR;
+            data_store[i+1] <= `ZERO_WORD;
+            valid[i+2] <= `FALSE;
+            tag_store[i+2] <= `ZERO_ADDR;
+            data_store[i+2] <= `ZERO_WORD;
+            valid[i+3] <= `FALSE;
+            tag_store[i+3] <= `ZERO_ADDR;
+            data_store[i+3] <= `ZERO_WORD;
         end
     end
     else if  (rdy) begin
+        //todo: rob rollback
+        
         //inst in directly from hit 
         if (hit && cache_full == `FALSE) 
             begin

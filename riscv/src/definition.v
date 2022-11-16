@@ -27,7 +27,7 @@
 
 `define FULL_WARNING 6
 
-// vec type
+`define WB_TAG 1:0
 `define STATUS_TYPE 2:0
 `define INT_TYPE 31:0
 `define MEMPORT_TYPE 7:0
@@ -35,6 +35,7 @@
 `define ADDR_TYPE 31:0
 `define DATA_TYPE 31:0
 `define OPENUM_TYPE 5:0
+
 
 // notice: ID_TYPE always 1-bit wider than POS_TYPE
 `define REG_POS_TYPE 4:0
@@ -49,6 +50,8 @@
 `define RS_SIZE  16
 `define LSB_SIZE 16
 `define ROB_SIZE 16
+`define BUFFER_SIZE 32
+
 
 // 2^6 op enum
 `define OPENUM_NOP     6'd0
