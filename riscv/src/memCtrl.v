@@ -91,7 +91,7 @@ assign disable_to_write = (wb_addr[nowPtr][17:16] == 2'b11);
                                     (stages == 2) ? wb_data[nowPtr][15:8] : 
                                     (stages == 3) ? wb_data[nowPtr][23:16] : wb_data[nowPtr][31:24];
 
-always @(posedge clk ) begin
+always @(posedge clk) begin
     if(rst)begin
       flag_to_if<=`FALSE;
       flag_to_ram<=`FALSE;
@@ -195,7 +195,7 @@ always @(posedge clk ) begin
                     end
                     4:begin 
                             case(stages) 
-                                // 1: begin out_ram_address <= in_lsb_addr; end 
+                                
                                 2: begin data_bus[7:0] <= data_from_ram; end
                                 3: begin data_bus[15:8] <= data_from_ram; end
                                 4: begin data_bus[23:16] <= data_from_ram; end 
@@ -216,7 +216,53 @@ always @(posedge clk ) begin
                             endcase
                         end
                 endcase
+            FETCHER_READ:begin
+                 case(stages) 
+                        2: begin data_bus[7:0] <= data_from_ram; end
+                        3: begin data_bus[15:8] <= data_from_ram; end
+                        4: begin data_bus[23:16] <= data_from_ram; end 
+                        5: begin 
+                            data_bus[31:24] <= data_from_ram;
+                            stages <= 1;
+                            fetcher_flag <= `FALSE;
+                            flag_to_if <= `TRUE;
 
+                            if(wb_is_empty == `FALSE) begin
+                                status <= ROB_WRITE; 
+                                addr_to_ram <= `ZERO_ADDR;
+                            end else if(fetcher_flag == `TRUE) begin
+                                status <= FETCHER_READ;
+                                addr_to_ram <= addr_from_if;
+                            end else begin status <= IDLE; end
+                        end 
+                    endcase
+              
+            end
+            ROB_WRITE:
+                if(disable_to_write==`TRUE)begin
+                  data_to_ram<=1;
+                  addr_to_ram<=`ZERO_ADDR;
+                  stages<=1;
+
+                end else begin
+                  flag_write_from_ram<=0;
+                  //commit from WBuffer
+                  
+                  if(stages==1)begin 
+                    addr_to_ram<=wb_addr[nowPtr];
+                  end
+                  data_to_ram<=buffered_write_data;
+                  if(stages==wb_size[nowPtr])begin
+                     head <= nowPtr;
+                            stages <= 1;
+                            if(nowPtr == tail) begin 
+                                status <= IDLE;
+                            end  
+                            else begin 
+                                status <= ROB_WRITE;
+                            end
+                  end
+                end
             IDLE: begin 
                     stages <= 1;
                     status <= buffered_status;
