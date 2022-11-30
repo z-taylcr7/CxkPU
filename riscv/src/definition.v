@@ -164,3 +164,6 @@
 // func7 
 `define FUNC7_NORM 7'b0000000
 `define FUNC7_SPEC 7'b0100000
+//addition 
+`define JUMP_ENABLE 32'b1
+`define JUMP_DISABLE 32'b0
