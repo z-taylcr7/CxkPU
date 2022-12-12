@@ -1,5 +1,5 @@
 `include "riscv/src/definition.v"
-module decoder(
+module bp(
     input wire clk,
     input wire rst,
     input wire rdy,
