@@ -185,6 +185,7 @@ integer i;
                     end
                 end
             end else begin
+                //rob result misbranch, flush
                 for(i=0;i<`RS_SIZE;i=i+1)begin
                     busy[i]<=`FALSE;
                     value1_tag[i]<=`ZERO_ROB;

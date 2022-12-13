@@ -65,11 +65,8 @@ wire wb_is_full;
 wire wb_is_empty;
 
 
-//assign buffered_status = (fetcher_flag == `TRUE) ? STATUS_FETCH :
-//                        (lsb_flag == `FALSE) ? STATUS_IDLE : 
-//                        (load_flag == `TRUE) ? STATUS_LOAD : STATUS_STORE;
 
-
+//fifo write buffer
 reg [`WB_TAG] head;
 reg [`WB_TAG] tail;
 reg [`DATA_TYPE] wb_data [(`BUFFER_SIZE-1):0];
@@ -111,8 +108,7 @@ always @(posedge clk) begin
       size<=0;
       flag_write_from_ram<=0;
 
-    end
-    else if(rdy) begin
+    end else if(rdy) begin
         flag_to_if<=`FALSE;
         flag_to_lsb<=`FALSE;
         flag_to_ram<=`FALSE;
@@ -159,7 +155,7 @@ always @(posedge clk) begin
                             lsb_flag=`FALSE;
                             flag_to_lsb=`TRUE;
                             if(wb_is_empty==`FALSE)begin
-                              status <=ROB_WRITE;
+                              status <= ROB_WRITE;
                               data_to_ram <=`ZERO_WORD;
                               
                             end else if (fetcher_flag==`TRUE) begin
@@ -174,7 +170,7 @@ always @(posedge clk) begin
                     2:begin
                       data_bus<=data_from_ram;
                       case(stages) 
-                                // 1: begin out_ram_address <= in_lsb_addr;end 
+                                // 1: begin out_ram_addr <= in_lsb_addr;end 
                                 2: begin data_bus[7:0] <= data_from_ram; end
                                 3: begin 
                                     data_bus <= {data_bus,data_bus[7:0]}; 
