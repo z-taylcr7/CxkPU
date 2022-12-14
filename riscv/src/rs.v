@@ -1,4 +1,4 @@
-`include "riscv/src/definition.v"
+`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
 module RS (
     input clk,input rst,input rdy,
     // from fetcher to decide whether to store the input

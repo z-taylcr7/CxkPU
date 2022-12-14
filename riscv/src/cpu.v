@@ -1,13 +1,13 @@
-`include"riscv/src/bp.v"
-`include"riscv/src/rs.v"
-`include"riscv/src/lsb.v"
-`include"riscv/src/memCtrl.v"
-`include"riscv/src/Fetcher.v"
-`include"riscv/src/rob.v"
-`include"riscv/src/alu.v"
-`include"riscv/src/decoder.v"
-`include"riscv/src/definition.v"
-`include"riscv/src/regfile.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/bp.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/rs.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/lsb.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/mem_ctrl.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/Fetcher.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/rob.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/alu.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/decoder.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/regfile.v"
 module cpu(
   input  wire                 clk_in,			// system clock signal
   input  wire                 rst_in,			// reset signal
@@ -141,20 +141,7 @@ decoder dec(
   .out_lsb_rob_tag(decoder_to_lsb_rob_tag), .out_lsb_op(decoder_to_lsb_op), .out_lsb_value1(decoder_to_lsb_value1), .out_lsb_value2(decoder_to_lsb_value2), .out_lsb_tag1(decoder_to_lsb_tag1), .out_lsb_tag2(decoder_to_lsb_tag2), .out_lsb_imm(decoder_to_lsb_imm)
   
   );
-bp brp(
-  .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
-  .in_fetcher_tag(fetcher_to_bp_tag),
-  .out_fetcher_jump_res(bp_to_fetcher_jump_flag),
-  .in_rob_bp_res(rob_to_bp_flag),
-  .in_rob_tag(rob_to_bp_tag),
-  .in_rob_jump_res(rob_to_bp_jump_flag)
-);
 
-ALU alu(
-  .clk(clk_in),.rst(rst_in),.rdy(rdy_in),
-  .in_op(rs_to_alu_op),.in_value1(rs_to_alu_value1),.in_value2(rs_to_alu_value2),.in_imm(rs_to_alu_imm),.in_pc(rs_to_alu_pc),.in_rob_tag(rs_to_alu_rob_tag),
-  .out_rob_tag(alu_out_cdb_tag),.out_value(alu_out_cdb_value),.out_newpc(alu_out_cdb_newpc)
-  );
 RS rs(
   .clk(clk_in),.rst(rst_in),.rdy(rdy_in),
   .in_fetcher_flag(fetcher_out_store_flag),
@@ -192,6 +179,7 @@ lsb lsb(
   .out_io_in(lsb_out_io_in),
   .in_rob_xbp(rob_out_xbp)
 );
+
 rob rob(
   .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
 
@@ -211,6 +199,26 @@ rob rob(
   .out_bp_flag(rob_to_bp_flag), .out_bp_tag(rob_to_bp_tag), .out_bp_jump_flag(rob_to_bp_jump_flag),
   .out_rob_tag(rob_out_tag), .out_value(rob_out_value)
 );
+ALU alu(
+  .clk(clk_in),.rst(rst_in),.rdy(rdy_in),
+  .in_op(rs_to_alu_op),.in_value1(rs_to_alu_value1),.in_value2(rs_to_alu_value2),.in_imm(rs_to_alu_imm),.in_pc(rs_to_alu_pc),.in_rob_tag(rs_to_alu_rob_tag),
+  .out_rob_tag(alu_out_cdb_tag),.out_value(alu_out_cdb_value),.out_newpc(alu_out_cdb_newpc)
+  );
+memCtrl mem(
+  .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
+  .in_fetcher_flag(fetcher_to_mem_flag), .in_fetcher_addr(fetcher_to_mem_pc),
+  .out_fetcher_flag(mem_to_fetcher_flag),
+  .in_lsb_flag(lsb_to_mem_flag), .in_lsb_addr(lsb_to_mem_address), .in_lsb_size(lsb_to_mem_size), .in_lsb_sign(lsb_to_mem_sign),
+  .out_lsb_flag(mem_to_lsb_flag),
+  .in_rob_flag(rob_to_mem_flag), .in_rob_addr(rob_to_mem_address), .in_rob_size(rob_to_mem_size), .in_rob_data(rob_to_mem_data),
+  .in_rob_load_flag(rob_to_mem_load_flag),
+  .out_rob_flag(mem_to_rob_flag),
+  .out_data(mem_out_data),
+  .out_ram_write_flag(mem_wr), .out_ram_address(mem_a), .out_ram_data(mem_dout), .in_ram_data(mem_din),
+  .in_rob_xbp(rob_out_xbp),
+  .in_uart_full(io_buffer_full)
+);
+
 regfile regs(
   .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
   .in_fetcher_flag(fetcher_out_store_flag),
@@ -220,26 +228,26 @@ regfile regs(
   .in_rob_commit_reg(rob_to_reg_index), .in_rob_commit_rob(rob_to_reg_rob_tag), .in_rob_commit_value(rob_to_reg_value),
   .in_rob_xbp(rob_out_xbp)
 );
-memCtrl mem(
-  
+
+bp brp(
   .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
-  .uart_full(io_buffer_full),
-  .flag_from_if(fetcher_to_mem_flag),.addr_from_if(fetcher_to_mem_pc),
-  .flag_to_if(mem_to_fetcher_flag),
-  .flag_from_lsb(lsb_to_mem_flag),
-  .addr_from_lsb(lsb_to_mem_address),
-  .size_from_lsb(lsb_to_mem_size),
-  .sign_from_lsb(lsb_to_mem_signed),
-  .flag_to_lsb(mem_to_lsb_flag),
-  .flag_from_rob(rob_to_mem_flag),
-  .load_flag_from_rob(rob_to_mem_load_flag),
-  .addr_from_rob(rob_to_mem_address),.data_from_rob(rob_to_mem_data),
-  .size_from_rob(rob_to_mem_size),
-  .flag_to_rob(mem_to_rob_flag),
-  .flag_write_to_ram(mem_wr),.data_to_ram(mem_din),.addr_to_ram(mem_a),.data_from_ram(mem_dout),
-  .data_bus(mem_out_data)
+  .in_fetcher_tag(fetcher_to_bp_tag),
+  .out_fetcher_jump_res(bp_to_fetcher_jump_flag),
+  .in_rob_bp_res(rob_to_bp_flag),
+  .in_rob_tag(rob_to_bp_tag),
+  .in_rob_jump_res(rob_to_bp_jump_flag)
 );
 
+
+// Specifications:
+// - Pause cpu(freeze pc, registers, etc.) when rdy_in is low
+// - Memory read result will be returned in the next cycle. Write takes 1 cycle(no need to wait)
+// - Memory is of size 128KB, with valid address ranging from 0x0 to 0x20000
+// - I/O port is mapped to address higher than 0x30000 (mem_a[17:16]==2'b11)
+// - 0x30000 read: read a byte from input
+// - 0x30000 write: write a byte to output (write 0x00 is ignored)
+// - 0x30004 read: read clocks passed since cpu starts (in dword, 4 bytes)
+// - 0x30004 write: indicates program stop (will output '\0' through uart tx)
 
 
 

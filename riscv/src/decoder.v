@@ -1,5 +1,5 @@
-`include "riscv/src/definition.v"
-`include "riscv/src/decodeunit.v"
+`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/decodeunit.v"
 module decoder (
      input clk,input rst,input rdy,
 
