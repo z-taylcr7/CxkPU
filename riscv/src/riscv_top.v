@@ -1,3 +1,6 @@
+`include"riscv/src/cpu.v"
+`include"riscv/src/ram.v"
+`include"riscv/src/hci.v"
 // riscv top module file
 // modification allowed for debugging purposes
 

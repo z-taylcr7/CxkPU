@@ -4,7 +4,7 @@ module regfile(
     //rst is currently false!
     input wire rst,
     input wire rdy,
-    // from fetcher to decide whether to update the destination's busy tag 
+    // from fetcher to decide whether to update the dest's busy tag 
     input in_fetcher_flag,
 
     // Decoder asks for Value/ROB-Tag/Busy of two operands
@@ -18,8 +18,8 @@ module regfile(
     output out_decoder_busy2,
 
     // Decoder sets dest register's rob pos
-    input [`REG_POS_TYPE] in_decoder_destination_reg,
-    input [`ROB_POS_TYPE] in_decoder_destination_rob,
+    input [`REG_POS_TYPE] in_decoder_dest_reg,
+    input [`ROB_POS_TYPE] in_decoder_dest_rob,
 
     // accept rob commit
     // commit reg=0 is nothing 
@@ -58,8 +58,8 @@ module regfile(
             end
           end
           if(in_fetcher_flag==`TRUE)begin
-            busy[in_decoder_destination_rob]<=`TRUE;
-            rename[in_decoder_destination_rob]<=in_decoder_destination_rob;
+            busy[in_decoder_dest_rob]<=`TRUE;
+            rename[in_decoder_dest_rob]<=in_decoder_dest_rob;
             
           end
           if(in_rob_xbp==`TRUE)begin

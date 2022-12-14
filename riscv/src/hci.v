@@ -26,7 +26,9 @@
 ***************************************************************************************************/
 
 // modification allowed for debugging purposes
-
+`include"riscv/src/common/fifo/fifo.v"
+`include"riscv/src/common/block_ram/block_ram.v"
+`include "riscv/src/common/uart/uart_baud_clk.v"
 module hci
 #(
   parameter SYS_CLK_FREQ = 100000000,

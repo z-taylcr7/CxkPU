@@ -10,6 +10,7 @@
 
 module memCtrl(
     input wire clk,input wire rst,input wire rdy,
+    input uart_full,
     // fetcher
     input wire flag_from_if,
     input wire [`ADDR_TYPE]addr_from_if,
@@ -17,30 +18,24 @@ module memCtrl(
 
     // lsb
     input wire flag_from_lsb,
-    input wire flag_load_from_lsb,//0 store 1 load
         //store
     input wire [`ADDR_TYPE]addr_from_lsb,
-    input wire [`INT_TYPE]data_from_lsb,
-    input wire [2:0]size_from_lsb,    
-        //load
-    output reg [`INT_TYPE]data_to_lsb,
+    input wire [`DATA_TYPE]data_from_lsb,
+    input wire [5:0]size_from_lsb, 
+    input sign_from_lsb,   
     output reg flag_to_lsb,
 
     //rob
     input wire flag_from_rob,
-    input wire flag_load_from_rob,//0 store 1 load
-        //store
+    input wire load_flag_from_rob,
     input wire [`ADDR_TYPE]addr_from_rob,
     input wire [`INT_TYPE]data_from_rob,
-    input wire [2:0]size_from_rob,    
-        //load
-    output reg [`INT_TYPE]data_to_rob,
+    input wire [5:0]size_from_rob,    
     output reg flag_to_rob,
     
 
     // ram
-    output reg flag_to_ram,
-    output reg flag_write_from_ram,
+    output reg flag_write_to_ram,//0 read 1 write
     output reg[`MEMPORT_TYPE]data_to_ram,
     output reg[`ADDR_TYPE]addr_to_ram,
     input wire[`MEMPORT_TYPE]data_from_ram,
@@ -63,6 +58,7 @@ wire [`MEMPORT_TYPE] buffered_write_data;
 wire disable_to_write;
 wire wb_is_full;
 wire wb_is_empty;
+reg[1:0] uart_wait;
 
 
 
@@ -76,7 +72,7 @@ wire [`WB_TAG] nextPtr = (tail + 1) % (`BUFFER_SIZE);
 wire [`WB_TAG] nowPtr = (head + 1) % (`BUFFER_SIZE);
 assign wb_is_empty = (head == tail) ? `TRUE : `FALSE;
 assign wb_is_full = (nextPtr == head) ? `TRUE : `FALSE;
-assign disable_to_write = (wb_addr[nowPtr][17:16] == 2'b11);
+assign disable_to_write = (wb_addr[nowPtr][17:16] == 2'b11)&&(uart_full==`TRUE||uart_wait!=0);
 
     assign buffered_status = (io_flag == `TRUE) ? IO_READ :
                                 (wb_is_empty == `FALSE) ? ROB_WRITE : 
@@ -91,29 +87,28 @@ assign disable_to_write = (wb_addr[nowPtr][17:16] == 2'b11);
 always @(posedge clk) begin
     if(rst)begin
       flag_to_if<=`FALSE;
-      flag_to_ram<=`FALSE;
       flag_to_lsb<=`FALSE;
-      data_to_lsb=`ZERO_WORD;
       data_to_ram=`ZERO_WORD;
       addr_to_ram=`ZERO_ADDR;
       status <= IDLE;
       stages <= 1;
       head <= 0;
       tail <= 0;
+      flag_write_to_ram<=0;
       io_flag <= `FALSE;
       rob_flag<=`FALSE;
       lsb_flag<=`FALSE;
       fetcher_flag<=`FALSE;
       start_addr<=0;
       size<=0;
-      flag_write_from_ram<=0;
+      uart_wait<=0;
 
     end else if(rdy) begin
         flag_to_if<=`FALSE;
         flag_to_lsb<=`FALSE;
-        flag_to_ram<=`FALSE;
-        data_to_ram<=`ZERO_WORD;      
-        flag_write_from_ram<=0;
+        data_to_ram<=`ZERO_WORD;
+        flag_write_to_ram<=0; 
+        uart_wait <= uart_wait - ((uart_wait == 0) ? 0 : 1);
         //wb suck in commits from rob
         if(rob_flag==`TRUE||flag_from_rob==`TRUE)begin
            if(wb_is_full == `FALSE) begin 
@@ -241,7 +236,7 @@ always @(posedge clk) begin
                   stages<=1;
 
                 end else begin
-                  flag_write_from_ram<=0;
+                  flag_write_to_ram<=`TRUE;
                   //commit from WBuffer
                   
                   if(stages==1)begin 
@@ -256,6 +251,7 @@ always @(posedge clk) begin
                             end  
                             else begin 
                                 status <= ROB_WRITE;
+                                if(wb_addr[nowPtr] == `RAM_IO_PORT)uart_wait<=2;
                             end
                   end
                 end

@@ -36,15 +36,18 @@
 `define DATA_TYPE 31:0
 `define OPENUM_TYPE 5:0
 
+`define ICACHE_INDEX_RANGE 7:0
+`define ICACHE_TAG_RANGE 31:8
+`define ICACHE_SIZE 256
 
 // notice: ID_TYPE always 1-bit wider than POS_TYPE
 `define REG_POS_TYPE 4:0
 `define ROB_POS_TYPE 3:0
+`define BP_POS_TYPE 7:0
 
 `define RS_ID_TYPE 4:0
 `define ROB_ID_TYPE 4:0
 `define LSB_ID_TYPE 4:0
-
 // components size
 `define REG_SIZE 32
 `define RS_SIZE  16

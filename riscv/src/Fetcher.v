@@ -1,110 +1,157 @@
 `include "riscv/src/definition.v"
-module Fetcher(
-    input wire clk,
-    //rst is currently false!
-    input wire rst,
-    input wire rdy,
-
-    // to decoder
-    output reg [`INS_TYPE] inst_to_dec,
-    output reg [`ADDR_TYPE] pc_to_dec,
-    output reg predicted_jump_to_dec,
-    output reg flag_to_dec,
-
-    // cache full 
-    input wire cache_full,
-
-    // to memctrl
-    output reg [`ADDR_TYPE] pc_to_mc,
-    output reg flag_to_mc,
-    output reg drop_flag_to_mc,
-    // from memctrl
-    input wire flag_from_mc,
-    input wire [`INS_TYPE] inst_from_mc,
+module fetcher (
+    input clk,input rst,input rdy,
     
-    // predictor
-    output wire [`ADDR_TYPE] query_pc_to_pdc,
-    output wire [`INS_TYPE] query_inst_to_pdc,
-    input wire predicted_jump_flag_from_pdc
+    // port with mem
+    output reg out_mem_flag,
+    output reg[`DATA_TYPE] out_mem_pc,
+
+    input in_mem_flag,
+    input [`DATA_TYPE] in_mem_inst,
+
+    // info to decoder
+    output reg [`DATA_TYPE] out_inst,
+    output reg [`DATA_TYPE] out_pc,
+    output reg out_jump_flag,
+
+    // RS/LSB/ROB's status
+    input in_rs_idle,
+    input in_lsb_idle,
+    input in_rob_idle,
+
+    // enable rs/lsb/rob to store entry 
+    output reg out_store_flag,
+
+    // with bp
+    output [`BP_POS_TYPE] out_bp_tag,
+    input in_bp_jump_flag,
+
+    // rob may tell bp wrong
+    input in_rob_xbp,
+    input [`DATA_TYPE] in_rob_newpc
+
 );
-    parameter BUSY_STATUS=1,IDLE_STATUS=0;
-    reg[0:0]status;
-    reg[`ADDR_TYPE]pc,pc_mem;
+    // Control Units
+    localparam IDLE = 2'b0,WAIT_MEM = 2'b01,WAIT_IDLE = 2'b10;
+    reg [2:0] status; 
+    reg [`DATA_TYPE] pc;
+    wire next_idle = in_rs_idle && in_lsb_idle && in_rob_idle;
 
-    `define ICACHE_SIZE 256
-    `define INDEX_RANGE 9:2
-    `define TAG_RANGE 31:10
-    reg [`ICACHE_SIZE-1:0] valid ;
-    reg [`TAG_RANGE] tag_store [`ICACHE_SIZE-1:0];
-    reg [`INS_TYPE]data_store[`ICACHE_SIZE-1:0] ;
+    // I_CACHE
+    reg icache_valid [(`ICACHE_SIZE-1):0];
+    reg [24:0] icache_tag [(`ICACHE_SIZE-1):0];
+    reg [`DATA_TYPE] icache_inst [(`ICACHE_SIZE-1):0];
+    
+    assign out_bp_tag = pc[9:2];
 
-    wire hit=(valid[pc[`INDEX_RANGE]])&&(tag_store[pc[`INDEX_RANGE]]==pc[`TAG_RANGE]);
-    wire [`INS_TYPE] res_inst = (hit) ? data_store[pc[`INDEX_RANGE]] : `ZERO_WORD;
-
-    assign query_pc_to_pdc = pc;
-    assign query_inst_to_pdc = res_inst;
     integer i;
-always @(posedge clk ) begin
-    if (rst)begin
-        flag_to_dec <= `FALSE;       
-        flag_to_mc <= `FALSE; 
-        drop_flag_to_mc <= `FALSE;
-
-        pc <= `ZERO_ADDR;
-        pc_mem <= `ZERO_ADDR;
-
-        status <= IDLE_STATUS;
-        pc_to_mc <= `ZERO_ADDR;
-        pc_to_dec <= `ZERO_ADDR;
-        inst_to_dec <= `ZERO_WORD;      
-        
-        for (i = 0; i < `ICACHE_SIZE; i=i+4) begin
-            valid[i] <= `FALSE;
-            tag_store[i] <= `ZERO_ADDR;
-            data_store[i] <= `ZERO_WORD;
-            valid[i+1] <= `FALSE;
-            tag_store[i+1] <= `ZERO_ADDR;
-            data_store[i+1] <= `ZERO_WORD;
-            valid[i+2] <= `FALSE;
-            tag_store[i+2] <= `ZERO_ADDR;
-            data_store[i+2] <= `ZERO_WORD;
-            valid[i+3] <= `FALSE;
-            tag_store[i+3] <= `ZERO_ADDR;
-            data_store[i+3] <= `ZERO_WORD;
-        end
-    end
-    else if  (rdy) begin
-        //todo: rob rollback
-        
-        //inst in directly from hit 
-        if (hit && cache_full == `FALSE) 
-            begin
-            pc_to_dec <= pc;
-            pc <= pc + `NEXT_PC;
-            inst_to_dec <= res_inst;
-            flag_to_dec <= `TRUE;
+    always@(posedge clk) begin
+        if(rst == `TRUE) begin 
+            status <= IDLE;
+            pc <= `ZERO_WORD;
+            out_inst <= `ZERO_WORD;
+            out_store_flag <= `FALSE;
+            out_mem_flag <= `FALSE;
+            for(i=0;i < `ICACHE_SIZE;i=i+1) begin
+                icache_valid[i] <= `FALSE;
+            end 
+        end else if(rdy == `TRUE) begin 
+            
+            out_store_flag <= `FALSE;
+            out_mem_flag <= `FALSE;
+            if(in_rob_xbp == `TRUE) begin 
+                status <= IDLE;
+                pc <= in_rob_newpc;
+            end else begin
+                if(status == IDLE) begin
+                    // cache hit
+                    if(icache_valid[pc[`ICACHE_INDEX_RANGE]] == `TRUE && icache_tag[pc[`ICACHE_INDEX_RANGE]] == pc[`ICACHE_TAG_RANGE]) begin 
+                        out_inst <= icache_inst[pc[`ICACHE_INDEX_RANGE]];
+                        out_pc <= pc;
+                        if(next_idle == `TRUE) begin 
+                            out_store_flag <= `TRUE;
+                            status <= IDLE;
+                            if(icache_inst[pc[`ICACHE_INDEX_RANGE]][`OPCODE_RANGE] == `OPCODE_JAL) begin //JAL
+                                pc <= pc + 
+                                {
+                                    {12{icache_inst[pc[`ICACHE_INDEX_RANGE]][31]}}, 
+                                        icache_inst[pc[`ICACHE_INDEX_RANGE]][19:12], 
+                                        icache_inst[pc[`ICACHE_INDEX_RANGE]][20], 
+                                        icache_inst[pc[`ICACHE_INDEX_RANGE]][30:25], 
+                                        icache_inst[pc[`ICACHE_INDEX_RANGE]][24:21], 
+                                        1'b0
+                                        };
+                            end else if(icache_inst[pc[`ICACHE_INDEX_RANGE]][`OPCODE_RANGE] == `OPCODE_BR) begin 
+                                if(in_bp_jump_flag == `TRUE) begin 
+                                    out_jump_flag <= `TRUE; 
+                                    pc <= pc + 
+                                    {
+                                        {20{icache_inst[pc[`ICACHE_INDEX_RANGE]][31]}},
+                                        icache_inst[pc[`ICACHE_INDEX_RANGE]][7],
+                                        icache_inst[pc[`ICACHE_INDEX_RANGE]][30:25], 
+                                        icache_inst[pc[`ICACHE_INDEX_RANGE]][11:8], 
+                                        1'b0
+                                      };
+                                end else begin 
+                                    out_jump_flag <= `FALSE;
+                                    pc <= pc + 4;
+                                end
+                            end else begin pc <= pc + 4; end;
+                        end else begin 
+                            status <= WAIT_IDLE; 
+                        end
+                    end else begin  
+                        // cache miss
+                        status <= WAIT_MEM;
+                        out_mem_flag <= `TRUE;
+                        out_mem_pc <= pc;
+                    end
+                end else if(status == WAIT_MEM) begin 
+                    if(in_mem_flag == `TRUE) begin 
+                        out_pc <= pc;out_inst <= in_mem_inst;
+                        // update icache
+                        icache_valid[pc[`ICACHE_INDEX_RANGE]] <= `TRUE;
+                        icache_tag[pc[`ICACHE_INDEX_RANGE]] <= pc[`ICACHE_TAG_RANGE];
+                        icache_inst[pc[`ICACHE_INDEX_RANGE]] <= in_mem_inst;
+                        if(next_idle == `TRUE) begin 
+                            out_store_flag <= `TRUE;
+                            status <= IDLE;
+                            if(in_mem_inst[`OPCODE_RANGE] == `OPCODE_JAL) begin 
+                                pc <= pc + {
+                                    {12{in_mem_inst[31]}}, 
+                                    in_mem_inst[19:12], 
+                                    in_mem_inst[20], 
+                                    in_mem_inst[30:25], 
+                                    in_mem_inst[24:21], 
+                                    1'b0
+                                    };
+                            end else if(in_mem_inst[`OPCODE_RANGE] == `OPCODE_BR) begin 
+                                if(in_bp_jump_flag == `TRUE) begin 
+                                    out_jump_flag <= `TRUE;
+                                    pc <= pc + {{20{in_mem_inst[31]}}, in_mem_inst[7], in_mem_inst[30:25], in_mem_inst[11:8], 1'b0};
+                                end else begin 
+                                    out_jump_flag <= `FALSE;
+                                    pc <= pc + 4;
+                                end
+                            end else begin pc <= pc + 4; end
+                        end else begin status <= WAIT_IDLE; end
+                    end
+                end else if(status == WAIT_IDLE && next_idle == `TRUE) begin 
+                    out_store_flag <= `TRUE;
+                    status <= IDLE;
+                    if(out_inst[`OPCODE_RANGE] == `OPCODE_JAL) begin
+                        pc <= pc + {{12{out_inst[31]}}, out_inst[19:12], out_inst[20], out_inst[30:25], out_inst[24:21], 1'b0};
+                    end else if(out_inst[`OPCODE_RANGE] == `OPCODE_BR) begin 
+                        if(in_bp_jump_flag == `TRUE) begin 
+                            out_jump_flag <= `TRUE;
+                            pc <= pc + {{20{out_inst[31]}}, out_inst[7], out_inst[30:25], out_inst[11:8], 1'b0};
+                        end else begin 
+                            out_jump_flag <= `FALSE;
+                            pc <= pc + 4;
+                        end
+                    end else begin pc <= pc + 4; end
+                end
             end
-        else flag_to_dec<=`FALSE;
-        drop_flag_to_mc <= `FALSE;
-        flag_to_mc <= `FALSE;
-
-        //work if idle and ready
-        if (status == IDLE_STATUS) begin
-            flag_to_mc <= `TRUE;
-            pc_to_mc <= pc_mem;
-            status <= BUSY_STATUS;
         end
-        else begin
-            if (flag_from_mc) begin
-                //put into I-Cache
-                pc_mem <= ((pc_mem == pc) ? pc_mem + `NEXT_PC : pc);
-                tag_store[pc_mem[`INDEX_RANGE]] <= pc_mem[`TAG_RANGE];
-                data_store[pc_mem[`INDEX_RANGE]] <= inst_from_mc;
-
-                valid[pc_mem[`INDEX_RANGE]] <= `TRUE;
-                status <= IDLE_STATUS;
-            end
-        end 
-    end
-end
-endmodule 
+    end   
+endmodule

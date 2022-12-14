@@ -1,5 +1,5 @@
 `include "riscv/src/definition.v"
-module rs (
+module RS (
     input clk,input rst,input rdy,
     // from fetcher to decide whether to store the input
     input in_fetcher_flag,
@@ -69,7 +69,7 @@ module rs (
                             ~busy[12] ? 12 :
                             ~busy[13] ? 13 :
                             ~busy[14] ? 14 : 
-                            ~busy[15] ? 15 : `INVALID_RS;
+                            ~busy[15] ? 15 : `ZERO_RS;
     genvar j;
     //check ready=busy and Qi=Qj=0
     generate
@@ -91,7 +91,7 @@ module rs (
                         ready[12] ? 12 :
                         ready[13] ? 13 :
                         ready[14] ? 14 :
-                        ready[15] ? 15 : `INVALID_RS;
+                        ready[15] ? 15 : `ZERO_RS;
 
 integer i;
     always @(posedge clk ) begin
@@ -106,7 +106,7 @@ integer i;
         if(rst==`FALSE&&rdy)begin
             out_alu_op<=`OPENUM_NOP;
             if(in_rob_xbp==`FALSE)begin
-                if(issue_tag!=`INVALID_RS)begin
+                if(issue_tag!=`ZERO_RS)begin
                     out_alu_op<=op[issue_tag];
                     out_alu_value1<=value1[issue_tag];
                     out_alu_value2<=value2[issue_tag];

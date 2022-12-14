@@ -11,26 +11,26 @@ module decoder (
     // ask register for source operand status
     output [`REG_POS_TYPE] out_reg_tag1,
     input [`DATA_TYPE] in_reg_value1,
-    input [`ROB_ID_TYPE] in_reg_robtag1,
+    input [`ROB_POS_TYPE] in_reg_robtag1,
     input in_reg_busy1,
 
     output [`REG_POS_TYPE] out_reg_tag2,
     input [`DATA_TYPE] in_reg_value2,
-    input [`ROB_ID_TYPE] in_reg_robtag2,
+    input [`ROB_POS_TYPE] in_reg_robtag2,
     input in_reg_busy2,
 
     // ask registers to update value
     output reg [`REG_POS_TYPE] out_reg_dest,  //use this == zero to check whether it is send to register
-    output [`ROB_ID_TYPE] out_reg_rob_tag,
+    output [`ROB_POS_TYPE] out_reg_rob_tag,
 
     // Get free rob entry tag
-    input [`ROB_ID_TYPE] in_rob_freetag,
+    input [`ROB_POS_TYPE] in_rob_freetag,
 
     // ask rob for source operand value
-    output [`ROB_ID_TYPE] out_rob_fetch_tag1,
+    output [`ROB_POS_TYPE] out_rob_fetch_tag1,
     input [`DATA_TYPE] in_rob_fetch_value1,
     input in_rob_fetch_ready1,
-    output [`ROB_ID_TYPE] out_rob_fetch_tag2,
+    output [`ROB_POS_TYPE] out_rob_fetch_tag2,
     input [`DATA_TYPE] in_rob_fetch_value2,
     input in_rob_fetch_ready2,
 
@@ -40,23 +40,23 @@ module decoder (
     output reg out_rob_jump_flag,
 
     // ask rs to store entry
-    output reg [`ROB_ID_TYPE] out_rs_rob_tag, //use this == zero to check whether it is send to rs
+    output reg [`ROB_POS_TYPE] out_rs_rob_tag, //use this == zero to check whether it is send to rs
     output reg [`OPENUM_TYPE] out_rs_op,
     output reg [`DATA_TYPE] out_rs_value1,
     output reg [`DATA_TYPE] out_rs_value2,
-    output reg [`ROB_ID_TYPE] out_rs_tag1,
-    output reg [`ROB_ID_TYPE] out_rs_tag2,
+    output reg [`ROB_POS_TYPE] out_rs_tag1,
+    output reg [`ROB_POS_TYPE] out_rs_tag2,
     output reg [`DATA_TYPE] out_rs_imm,
     // for rs and rob
     output [`DATA_TYPE] out_pc,
 
     // ask lsb to store entry
-    output reg [`ROB_ID_TYPE] out_lsb_rob_tag, 
+    output reg [`ROB_POS_TYPE] out_lsb_rob_tag, 
     output reg [`OPENUM_TYPE] out_lsb_op,//use this \in lsb to check whether it is send to lsb
     output reg [`DATA_TYPE] out_lsb_value1,
     output reg [`DATA_TYPE] out_lsb_value2,
-    output reg [`ROB_ID_TYPE] out_lsb_tag1,
-    output reg [`ROB_ID_TYPE] out_lsb_tag2,
+    output reg [`ROB_POS_TYPE] out_lsb_tag1,
+    output reg [`ROB_POS_TYPE] out_lsb_tag2,
     output reg [`DATA_TYPE] out_lsb_imm
 );
     wire [6:0] opcode;
@@ -76,8 +76,8 @@ module decoder (
     assign out_pc = in_fetcher_pc;
     wire [`DATA_TYPE] value1; 
     wire [`DATA_TYPE] value2; 
-    wire [`ROB_ID_TYPE] tag1;
-    wire [`ROB_ID_TYPE] tag2;
+    wire [`ROB_POS_TYPE] tag1;
+    wire [`ROB_POS_TYPE] tag2;
 
     assign in_reg_rs1 = in_dcd_rs1;
     assign in_reg_rs2 = in_dcd_rs2;
