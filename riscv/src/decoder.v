@@ -1,5 +1,6 @@
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/decodeunit.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/decodeunit.v"
+
 module decoder (
      input clk,input rst,input rdy,
 
@@ -70,10 +71,12 @@ module decoder (
     assign rd = in_fetcher_inst[`RD_RANGE];
     assign out_reg_tag1 = in_fetcher_inst[`RS1_RANGE];
     assign out_reg_tag2 = in_fetcher_inst[`RS2_RANGE];
+
     assign out_rob_fetch_tag1 = in_reg_robtag1;
     assign out_rob_fetch_tag2 = in_reg_robtag2;
     assign out_reg_rob_tag = in_rob_freetag;
     assign out_pc = in_fetcher_pc;
+    
     wire [`DATA_TYPE] value1; 
     wire [`DATA_TYPE] value2; 
     wire [`ROB_POS_TYPE] tag1;
@@ -93,6 +96,8 @@ module decoder (
     wire [`REG_POS_TYPE] in_dcd_rs2;
     wire [`DATA_TYPE] in_dcd_imm;
     wire in_dcd_is_jump, in_dcd_is_store;
+
+    //todo: one clock latency
     decodeunit dcd (
         .inst(in_fetcher_inst),
         .openum(in_dcd_openum),
@@ -125,29 +130,98 @@ always @(posedge clk) begin
     out_lsb_tag2 = `ZERO_ROB;
     out_rob_jump_flag= in_fetcher_jump_flag;
 
-    if (rst == `TRUE || rdy == `FALSE || in_dcd_openum == `OPENUM_NOP)begin
+    if (rst == `TRUE || rdy == `FALSE)begin
+
     end else begin
+       case (opcode)
+                `OPCODE_LUI:begin
+                  out_rob_op = in_dcd_openum;
+                  out_rob_dest = {27'b0,rd[4:0]};
+                  out_rs_rob_tag = in_rob_freetag;
+                  out_rs_op = in_dcd_openum;
+                  out_rs_imm = in_dcd_imm;
+                  out_reg_dest = rd;
+                end
+                `OPCODE_AUIPC:begin
+                  out_rob_op =in_dcd_openum;
+                  out_rob_dest = {27'b0,rd[4:0]};
+                  out_rs_rob_tag = in_rob_freetag;
+                  out_rs_op = in_dcd_openum;
+                  out_rs_imm = in_dcd_imm;
+                  out_reg_dest = rd;
+                end
+                `OPCODE_JAL:begin 
+                    out_rob_op = in_dcd_openum;
+                    out_rob_dest = {27'b0,rd[4:0]};
+                    out_rs_rob_tag = in_rob_freetag;
+                    out_rs_op = in_dcd_openum;
+                    out_reg_dest = rd;
+                end
+                `OPCODE_JALR:begin 
+                    out_rob_op = in_dcd_openum;
+                    out_rob_dest = {27'b0,rd[4:0]};
+                    out_rs_rob_tag = in_rob_freetag;
+                    out_rs_op = in_dcd_openum;
+                    out_rs_value1 = value1;
+                    out_rs_tag1 = tag1;
+                    out_rs_imm = in_dcd_imm;
+                    out_reg_dest = rd;
+                end
+                `OPCODE_BR:begin 
+                    out_rs_rob_tag = in_rob_freetag;
+                    out_rs_value1 = value1;
+                    out_rs_tag1 = tag1;
+                    out_rs_value2 = value2;
+                    out_rs_tag2 = tag2;
+                    out_rs_imm = in_dcd_imm;
+                    
+                end
+                `OPCODE_L:begin 
+                    out_rob_dest = {27'b0,rd[4:0]};
+                    out_lsb_rob_tag = in_rob_freetag;
+                    out_lsb_value1 = value1;
+                    out_lsb_tag1 = tag1;
+                    out_lsb_imm = in_dcd_imm;
+                    out_reg_dest = rd;
+                    out_lsb_op = in_dcd_openum;     
+                    out_rob_op = in_dcd_openum;
+                    
+                end
+                `OPCODE_S:begin
+                    out_lsb_rob_tag = in_rob_freetag;
+                    out_lsb_value1 = value1;
+                    out_lsb_tag1 = tag1;
+                    out_lsb_value2 = value2;
+                    out_lsb_tag2 = tag2;
+                    out_lsb_imm = in_dcd_imm;
+                    out_lsb_op = in_dcd_openum;    
+                    out_rob_op = in_dcd_openum;
+                    
+                end
+                `OPCODE_ARITHI:begin 
+                    out_rob_dest = {27'b0,rd[4:0]};
+                    out_rs_rob_tag = in_rob_freetag;
+                    out_rs_value1 = value1;
+                    out_rs_tag1 = tag1;
+                    out_rs_imm = in_dcd_imm;
+                    out_reg_dest = rd;
+                    out_rob_op = in_dcd_openum;
+                    out_rs_op = in_dcd_openum;
+                end
+                `OPCODE_ARITH:begin 
+                    out_rob_dest = {27'b0,rd[4:0]};
+                    out_rs_rob_tag = in_rob_freetag;
+                    out_rs_value1 = value1;
+                    out_rs_tag1 = tag1;
+                    out_rs_value2 = value2;
+                    out_rs_tag2 = tag2;
+                    out_reg_dest = rd;
+                    out_rob_op = in_dcd_openum;
+                    out_rs_op = in_dcd_openum;
+                end
+
+       endcase
        
-       out_rs_op=in_dcd_openum;
-       out_rs_value1=value1;
-       out_rs_tag1=tag1;
-       out_rs_value2=value2;
-       out_rs_tag2=tag2;
-       out_rs_imm=in_dcd_imm; 
-       
-       out_lsb_op=in_dcd_openum;
-       out_lsb_value1=value1;
-       out_lsb_tag1=tag1;
-       out_lsb_value2=value2;
-       out_lsb_tag2=tag2;
-       out_lsb_imm=in_dcd_imm;
-
-       out_rob_jump_flag=in_dcd_is_jump;
-       out_rob_dest=in_dcd_rd;
-       out_rob_op=in_dcd_openum;
-
-       out_reg_dest=in_dcd_rd;
-
     end
 end
 endmodule

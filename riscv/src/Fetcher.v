@@ -1,4 +1,4 @@
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 module fetcher (
     input clk,input rst,input rdy,
     
@@ -35,7 +35,8 @@ module fetcher (
     localparam IDLE = 2'b0,WAIT_MEM = 2'b01,WAIT_IDLE = 2'b10;
     reg [2:0] status; 
     reg [`DATA_TYPE] pc;
-    wire next_idle = in_rs_idle && in_lsb_idle && in_rob_idle;
+    wire next_idle;
+    assign next_idle = in_rs_idle && in_lsb_idle && in_rob_idle;
 
     // I_CACHE
     reg icache_valid [(`ICACHE_SIZE-1):0];

@@ -1,4 +1,4 @@
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 //Hello everyone, I'm a self-trained mem Ctrler having been training for two and a half year.
 //I can do nothing but:
 //                      Chang
@@ -79,7 +79,8 @@ module memCtrl(
     assign wb_is_empty = (head == tail) ? `TRUE : `FALSE;
     assign wb_is_full = (nextPtr == head) ? `TRUE : `FALSE;
     assign disable_to_write = (in_uart_full == `TRUE || wait_uart != 0 ) && (wb_addr[nowPtr][17:16] == 2'b11);
-
+    wire test;
+    assign test=(in_rob_flag)?`TRUE:`FALSE;
     // Combinatorial logic
     assign buffered_status = (io_flag == `TRUE) ? IO_READ :
                                 (wb_is_empty == `FALSE) ? ROB_WRITE : 
@@ -92,6 +93,7 @@ module memCtrl(
                                             (stages == 3) ? wb_data[nowPtr][23:16] : wb_data[nowPtr][31:24];
     // Temporal logic
     always @(posedge clk) begin 
+                    
         if(rst == `TRUE) begin 
             fetcher_flag <= `FALSE;
             out_fetcher_flag <= `FALSE;
@@ -128,7 +130,9 @@ module memCtrl(
             if(in_rob_load_flag == `TRUE) begin io_flag <= `TRUE; end
             if(in_fetcher_flag == `TRUE) begin fetcher_flag <= `TRUE;end
             if(in_lsb_flag == `TRUE) begin lsb_flag <= `TRUE; end 
-            if(in_rob_flag == `TRUE || rob_flag == `TRUE) begin 
+            
+             // $display($time,", modified.",in_rob_flag);
+            if(test == `TRUE || rob_flag == `TRUE) begin  
                 if(wb_is_full == `FALSE) begin 
                     rob_flag <= `FALSE;
                     out_rob_flag <= `TRUE;
@@ -158,10 +162,10 @@ module memCtrl(
                 ROB_WRITE:begin 
                     if(disable_to_write == `TRUE) begin
                         out_ram_address <= `ZERO_WORD;
-                        out_ram_data <= 1;
+                        out_ram_data <= 0;
                         stages <= 1;
                     end else begin 
-                        out_ram_write_flag <= 1;
+                        out_ram_write_flag <= `TRUE;
                         if(stages == 1) begin out_ram_address <= wb_addr[nowPtr]; end
                         out_ram_data <= buffered_write_data;
                         if(stages == BUFFER_Size[nowPtr]) begin
@@ -181,7 +185,7 @@ module memCtrl(
                             case(stages) 
                                 // 1:begin out_ram_address <= in_lsb_addr; end
                                 2:begin
-                                    if(in_lsb_sign == 1) begin out_data <= $signed(in_ram_data);end
+                                    if(in_lsb_sign == `TRUE) begin out_data <= $signed(in_ram_data);end
                                     else begin out_data <= in_ram_data; end
                                     stages <= 1 ;
                                     lsb_flag <= `FALSE;
@@ -263,6 +267,7 @@ module memCtrl(
                 IDLE: begin 
                     stages <= 1;
                     status <= buffered_status;
+                    out_data<=`ZERO_WORD;
                     out_ram_address <=  (buffered_status == IO_READ) ? `RAM_IO_PORT :
                                             (buffered_status == ROB_WRITE) ? `ZERO_WORD : 
                                                 (buffered_status == LSB_READ) ? in_lsb_addr :

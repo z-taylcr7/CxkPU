@@ -1,4 +1,4 @@
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 module lsb(
     input clk,input rst,input rdy,
 
@@ -87,7 +87,7 @@ module lsb(
 
     genvar i;
     generate
-        for(i = 1;i < `LSB_SIZE;i=i+1) begin :LSB_INIT
+        for(i = 1;i < `LSB_SIZE;i=i+1) begin 
             assign ready_to_issue[i] = (busy[i] == `TRUE) && (value2_tag[i] == `ZERO_ROB) && (address_ready[i] == `TRUE);
             assign ready_to_calculate_addr[i] = (busy[i] == `TRUE) && (value1_tag[i] == `ZERO_ROB) && (address_ready[i] == `FALSE);
         end
@@ -95,19 +95,19 @@ module lsb(
 
     assign calculate_tag = ready_to_calculate_addr[1] ? 1 : 
                         ready_to_calculate_addr[2] ? 2 : 
-                            ready_to_calculate_addr[3] ? 3 :
-                                ready_to_calculate_addr[4] ? 4 :
-                                    ready_to_calculate_addr[5] ? 5 :
-                                        ready_to_calculate_addr[6] ? 6 :
-                                            ready_to_calculate_addr[7] ? 7 : 
-                                                ready_to_calculate_addr[8] ? 8 : 
-                                                    ready_to_calculate_addr[9] ? 9 :
-                                                        ready_to_calculate_addr[10] ? 10 :
-                                                            ready_to_calculate_addr[11] ? 11 :
-                                                                ready_to_calculate_addr[12] ? 12 :
-                                                                    ready_to_calculate_addr[13] ? 13 :
-                                                                        ready_to_calculate_addr[14] ? 14 :
-                                                                            ready_to_calculate_addr[15] ? 15 : `ZERO_LSB;
+                        ready_to_calculate_addr[3] ? 3 :
+                        ready_to_calculate_addr[4] ? 4 :
+                        ready_to_calculate_addr[5] ? 5 :
+                        ready_to_calculate_addr[6] ? 6 :
+                        ready_to_calculate_addr[7] ? 7 : 
+                        ready_to_calculate_addr[8] ? 8 : 
+                        ready_to_calculate_addr[9] ? 9 :
+                        ready_to_calculate_addr[10] ? 10 :
+                        ready_to_calculate_addr[11] ? 11 :
+                        ready_to_calculate_addr[12] ? 12 :
+                        ready_to_calculate_addr[13] ? 13 :
+                        ready_to_calculate_addr[14] ? 14 :
+                        ready_to_calculate_addr[15] ? 15 : `ZERO_LSB;
 
     integer j;
     always @(posedge clk) begin 
@@ -119,7 +119,7 @@ module lsb(
             out_mem_flag <= `FALSE;
             out_mem_address <= `ZERO_WORD;
             out_io_in <= `FALSE;
-            for(j = 1;j < `LSB_SIZE;j=j+1) begin 
+            for(j = 0;j < `LSB_SIZE;j=j+1) begin 
                 address_ready[j] <= `FALSE;
                 address[j] <= `ZERO_WORD;
                 busy[j] <= `FALSE;
@@ -131,9 +131,11 @@ module lsb(
             out_mem_flag <= `FALSE;
             out_dest <= `ZERO_WORD;
             out_io_in <= `FALSE;
+           // $display($time," [ROB] JALR,now_Ptr: ",nowPtr," ready_to_issue:",ready_to_issue[nowPtr], "v2t:",value2_tag[nowPtr]);
+                  
             if(ready_to_issue[nowPtr] == `TRUE) begin 
                 if(status == IDLE) begin 
-                    case(op[nowPtr])
+                     case(op[nowPtr])
                         `OPENUM_SB,`OPENUM_SH,`OPENUM_SW: begin
                             status <= IDLE;
                             out_dest <= address[nowPtr];
@@ -149,8 +151,8 @@ module lsb(
                                 out_rob_tag <= tags[nowPtr];
                                 busy[nowPtr] <= `FALSE;
                                 address_ready[nowPtr] <= `FALSE;
-                                head <= nowPtr;
                                 out_io_in <= `TRUE;
+                                head <= nowPtr;
                             end else if(in_rob_check == `FALSE && address[nowPtr] != out_dest) begin
                                 status <= WAIT_MEM;
                                 out_mem_signed <= (op[nowPtr] == `OPENUM_LB) ? 1 : 0; 
@@ -193,6 +195,8 @@ module lsb(
             if(calculate_tag != `ZERO_LSB) begin 
                 address[calculate_tag] <= value1[calculate_tag] + imms[calculate_tag];
                 address_ready[calculate_tag] <= `TRUE;
+                
+           
             end
             // Store new entry into LSB
             if(in_fetcher_flag == `TRUE && in_decoder_rob_tag != `ZERO_ROB && in_decoder_op != `OPENUM_NOP) begin

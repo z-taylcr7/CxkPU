@@ -1,4 +1,4 @@
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 module ALU (
     input clk,input rst,input rdy,
     // input from rs 
@@ -14,6 +14,11 @@ module ALU (
     output reg [`DATA_TYPE] out_value,
     output reg [`DATA_TYPE] out_newpc
 );
+
+
+
+
+
     // Combinatorial logic
     always@(*) begin 
         out_value = `ZERO_WORD;

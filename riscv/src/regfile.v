@@ -1,4 +1,4 @@
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 module regfile(
      input wire clk,
     //rst is currently false!
@@ -39,36 +39,42 @@ module regfile(
     assign out_decoder_value2 = values[in_decoder_reg2];
     assign out_decoder_rob2 = rename[in_decoder_reg2];
     assign out_decoder_busy2 = busy[in_decoder_reg2];
-
-    integer i;
-    
-
+  always @(posedge clk) begin
+        if(rst == `TRUE) begin
+            values[0] <= `ZERO_WORD;
+            busy[0] <= `FALSE;
+            rename[0] <= `ZERO_ROB;
+        end
+    end
+     
+ genvar k;
+    generate
+        for(k=1;k<`REG_SIZE;k=k+1) begin:ROBWriteReg 
     always @(posedge clk ) begin
         if(rst==`TRUE)begin
-            values[0]=`ZERO_WORD;
-            rename[0]=`ZERO_ROB;
-            busy[0]=`FALSE;
+            values[k]=`ZERO_WORD;
+            rename[k]=`ZERO_ROB;
+            busy[k]=`FALSE;
         end 
         if(rdy&&rst==`FALSE)begin
-          if(in_rob_commit_reg!=`ZERO_REG)begin
+          if(in_rob_commit_reg==k)begin
             values[in_rob_commit_reg]<=in_rob_commit_value;
-            
-            if(in_rob_commit_rob==rename[in_rob_commit_reg])begin
-                busy[in_rob_commit_rob]<=`FALSE;
+            if(in_rob_commit_rob==rename[k])begin
+                busy[k]<=`FALSE;
             end
           end
-          if(in_fetcher_flag==`TRUE)begin
-            busy[in_decoder_dest_rob]<=`TRUE;
-            rename[in_decoder_dest_rob]<=in_decoder_dest_rob;
+          if(in_fetcher_flag==`TRUE && in_decoder_dest_reg==k)begin
+            busy[k]<=`TRUE;
+            rename[k]<=in_decoder_dest_rob;
             
           end
           if(in_rob_xbp==`TRUE)begin
-            for(i=1;i<`REG_SIZE;i=i+1)begin
-                busy[i]<=`FALSE;
-                rename[i]<=`ZERO_ROB;
-            end
+                busy[k]<=`FALSE;
+                rename[k]<=`ZERO_ROB;
           end
         end
     end
+        end
+    endgenerate
 
 endmodule

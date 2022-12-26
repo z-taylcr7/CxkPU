@@ -1,13 +1,13 @@
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/bp.v"
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/rs.v"
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/lsb.v"
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/mem_ctrl.v"
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/Fetcher.v"
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/rob.v"
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/alu.v"
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/decoder.v"
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/regfile.v"
+ `include"/mnt/d/CPU/CxkPU/riscv/src/bp.v"
+ `include"/mnt/d/CPU/CxkPU/riscv/src/rs.v"
+ `include"/mnt/d/CPU/CxkPU/riscv/src/lsb.v"
+ `include"/mnt/d/CPU/CxkPU/riscv/src/mem_ctrl.v"
+ `include"/mnt/d/CPU/CxkPU/riscv/src/Fetcher.v"
+ `include"/mnt/d/CPU/CxkPU/riscv/src/rob.v"
+ `include"/mnt/d/CPU/CxkPU/riscv/src/alu.v"
+ `include "/mnt/d/CPU/CxkPU/riscv/src/Dec.v"
+`include"/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+ `include"/mnt/d/CPU/CxkPU/riscv/src/regfile.v"
 module cpu(
   input  wire                 clk_in,			// system clock signal
   input  wire                 rst_in,			// reset signal
@@ -126,10 +126,10 @@ fetcher fet(
   .out_bp_tag(fetcher_to_bp_tag), .in_bp_jump_flag(bp_to_fetcher_jump_flag),
   .in_rob_xbp(rob_out_xbp), .in_rob_newpc(rob_to_fetcher_newpc)
 );
-decoder dec(
+decode dec(
   
   .clk(clk_in),.rst(rst_in),.rdy(rdy_in),
-  .in_fetcher_inst(fetcher_to_decoder_inst),.in_fetcher_pc(fetcher_to_decoder_pc),.in_fetcher_jump_flag(fetcher_to_decoder_jump_flag),
+  .in_fetcher_instr(fetcher_to_decoder_inst),.in_fetcher_pc(fetcher_to_decoder_pc),.in_fetcher_jump_flag(fetcher_to_decoder_jump_flag),
   .out_reg_tag1(decoder_to_reg_tag1),.in_reg_value1(reg_to_decoder_value1),.in_reg_robtag1(reg_to_decoder_robtag1),.in_reg_busy1(reg_to_decoder_busy1),
   .out_reg_tag2(decoder_to_reg_tag2),.in_reg_value2(reg_to_decoder_value2),.in_reg_robtag2(reg_to_decoder_robtag2),.in_reg_busy2(reg_to_decoder_busy2),
   .out_reg_dest(decoder_to_reg_dest),.out_reg_rob_tag(decoder_to_reg_robtag),
@@ -206,6 +206,7 @@ ALU alu(
   );
 memCtrl mem(
   .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
+  .in_uart_full(io_buffer_full),
   .in_fetcher_flag(fetcher_to_mem_flag), .in_fetcher_addr(fetcher_to_mem_pc),
   .out_fetcher_flag(mem_to_fetcher_flag),
   .in_lsb_flag(lsb_to_mem_flag), .in_lsb_addr(lsb_to_mem_address), .in_lsb_size(lsb_to_mem_size), .in_lsb_sign(lsb_to_mem_sign),
@@ -215,8 +216,7 @@ memCtrl mem(
   .out_rob_flag(mem_to_rob_flag),
   .out_data(mem_out_data),
   .out_ram_write_flag(mem_wr), .out_ram_address(mem_a), .out_ram_data(mem_dout), .in_ram_data(mem_din),
-  .in_rob_xbp(rob_out_xbp),
-  .in_uart_full(io_buffer_full)
+  .in_rob_xbp(rob_out_xbp)
 );
 
 regfile regs(

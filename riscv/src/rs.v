@@ -1,4 +1,4 @@
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 module RS (
     input clk,input rst,input rdy,
     // from fetcher to decide whether to store the input
@@ -20,15 +20,15 @@ module RS (
     // from alu_cdb to update source value
     input [`DATA_TYPE] in_alu_cdb_value,
     input [`ROB_POS_TYPE] in_alu_cdb_pos, // use this == `ZERO_ROB to check legality
-
+    // from rob_cdb to update source value 
+    input [`ROB_POS_TYPE] in_rob_cdb_pos,
+    input [`DATA_TYPE] in_rob_cdb_value,
     // from lsb_cdb to update source value 
     input [`ROB_POS_TYPE] in_lsb_cdb_pos, // use this == `ZERO_ROB to check legality
     input [`DATA_TYPE] in_lsb_cdb_value,
     input in_lsb_io_in,
 
-    // from rob_cdb to update source value 
-    input [`ROB_POS_TYPE] in_rob_cdb_pos,
-    input [`DATA_TYPE] in_rob_cdb_value,
+ 
  
     // for alu to calculate
     output reg [`OPENUM_TYPE] out_alu_op, // `NOP means no operations
@@ -55,6 +55,7 @@ module RS (
     wire [`RS_ID_TYPE] issue_tag;
     wire ready [(`RS_SIZE-1):0];
     
+    assign out_fetcher_idle=(free_tag!=`ZERO_RS);
     assign free_tag = ~busy[1] ? 1 :
                             ~busy[2] ? 2 : 
                             ~busy[3] ? 3 :
@@ -70,6 +71,7 @@ module RS (
                             ~busy[13] ? 13 :
                             ~busy[14] ? 14 : 
                             ~busy[15] ? 15 : `ZERO_RS;
+
     genvar j;
     //check ready=busy and Qi=Qj=0
     generate
@@ -186,10 +188,8 @@ integer i;
                 end
             end else begin
                 //rob result misbranch, flush
-                for(i=0;i<`RS_SIZE;i=i+1)begin
+                for(i=1;i<`RS_SIZE;i=i+1)begin
                     busy[i]<=`FALSE;
-                    value1_tag[i]<=`ZERO_ROB;
-                    value2_tag[i]<=`ZERO_ROB;
                     robpos[i]<=`ZERO_ROB;
                 end
             end

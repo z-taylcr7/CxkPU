@@ -1,10 +1,10 @@
-`include "/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 module bp(
     input wire clk,
     input wire rst,
     input wire rdy,
     //with fetcher
-   input [7:0] in_fetcher_tag,
+    input [7:0] in_fetcher_tag,
     output wire out_fetcher_jump_res,
     
     // from rob commit to modify the table
@@ -21,7 +21,7 @@ module bp(
     always@(posedge clk) begin 
         if(rst == `TRUE) begin 
             for(i=0;i<256;i=i+1) begin 
-                predictor_table[i] <= 2'b01;
+                predictor_table[i] <= 2'b00;
             end
         end else if(rdy == `TRUE) begin 
             if(in_rob_bp_res == `TRUE) begin 

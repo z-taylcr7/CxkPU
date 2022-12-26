@@ -1,8 +1,6 @@
 // testbench top module file
 // for simulation only
-`include"/mnt/d/AAAAAAAA_pers.files/大二 上/System Arch/CxkPU/riscv/src/riscv_top.v"
-
-
+`include "/mnt/d/CPU/CxkPU/riscv/src/riscv_top.v"
 `timescale 1ns/1ps
 module testbench;
 
@@ -30,7 +28,7 @@ end
 initial begin
      $dumpfile("test.vcd");
      $dumpvars(0, testbench);
-     #3000 $finish;
+     #5000 $finish;
 end
 
 endmodule
