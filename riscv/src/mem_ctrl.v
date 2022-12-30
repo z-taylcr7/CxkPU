@@ -80,7 +80,9 @@ module memCtrl(
     assign wb_is_full = (nextPtr == head) ? `TRUE : `FALSE;
     assign disable_to_write = (in_uart_full == `TRUE || wait_uart != 0 ) && (wb_addr[nowPtr][17:16] == 2'b11);
     wire test;
+    wire lsblsbflag;
     assign test=(in_rob_flag)?`TRUE:`FALSE;
+    assign lsblsbflag=(in_lsb_flag)?`TRUE:`FALSE;
     // Combinatorial logic
     assign buffered_status = (io_flag == `TRUE) ? IO_READ :
                                 (wb_is_empty == `FALSE) ? ROB_WRITE : 
@@ -129,9 +131,8 @@ module memCtrl(
             out_ram_data <= 0;
             if(in_rob_load_flag == `TRUE) begin io_flag <= `TRUE; end
             if(in_fetcher_flag == `TRUE) begin fetcher_flag <= `TRUE;end
-            if(in_lsb_flag == `TRUE) begin lsb_flag <= `TRUE; end 
+            if(lsblsbflag == `TRUE) begin lsb_flag <= `TRUE; end 
             
-             // $display($time,", modified.",in_rob_flag);
             if(test == `TRUE || rob_flag == `TRUE) begin  
                 if(wb_is_full == `FALSE) begin 
                     rob_flag <= `FALSE;

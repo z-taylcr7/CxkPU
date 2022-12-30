@@ -144,7 +144,7 @@ module rob(
                 if(in_fetcher_flag==`TRUE&&in_decoder_op!=`OPENUM_NOP)begin
                     //store new entries
                     
-                    $display($time," [ROB]New entry tag : ",nextPtr," opcode: %b",in_decoder_op,"; PC : %h",in_decoder_pc );
+                   // $display($time," [ROB]New entry tag : ",nextPtr," opcode: %b",in_decoder_op,"; PC : %h",in_decoder_pc );
                 
                     predictions[nextPtr] <= in_decoder_jump_flag;
                     dest[nextPtr] <= in_decoder_dest;
@@ -174,8 +174,8 @@ module rob(
                 //commit! now!
                 if(ready[nowPtr]==`TRUE&&head!=tail)begin
                     if(status==IDLE)begin
-                        $display($time," [ROB] Start Committing : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]);
-                        if(op[nowPtr]==`OPENUM_JALR) $display($time," [ROB] newpc= ",newpc[nowPtr]," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
+                       // $display($time," [ROB] Start Committing : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]);
+                   //     if(op[nowPtr]==`OPENUM_JALR) $display($time," [ROB] newpc= ",newpc[nowPtr]," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
                                 
                         case (op[nowPtr])
                             `OPENUM_NOP:begin
@@ -200,21 +200,21 @@ module rob(
                                 out_bp_tag<=pcs[nowPtr][9:2];
                                 status <= IDLE;
                                 if(value[nowPtr]==`JUMP_ENABLE)begin
-                                    
-                                    $display($time," [ROB] Misbranch should jump: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
-                                
-                                    out_bp_jump_flag<=`TRUE;
+                                   out_bp_jump_flag<=`TRUE;
                                     if(predictions[nowPtr]==`FALSE)begin
-                                        out_xbp<=`TRUE;
+                                       
+                                   // $display($time," [ROB] Misbranch should jump: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
+                                
+                                      out_xbp<=`TRUE;
                                         out_newpc<=newpc[nowPtr];                                
                                     end
                                 end else begin
                                     
-                                    $display($time," [ROB] Misbranch shouldnot jump rob_tag: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",pcs[nowPtr] + 4);
-                                
                                      out_bp_jump_flag<=`FALSE;
                                     if(predictions[nowPtr]==`TRUE)begin
-                                        out_xbp<=`TRUE;
+                                     
+                                 //   $display($time," [ROB] Misbranch shouldnot jump rob_tag: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",pcs[nowPtr] + 4);
+                                   out_xbp<=`TRUE;
                                         out_newpc<=pcs[nowPtr]+`NEXT_PC;                                
                                     end
                                 end
@@ -256,7 +256,7 @@ module rob(
                               status <= IDLE;
                         isStore[nowPtr] <= `FALSE;  
                         head <= nowPtr;
-                        $display($time," [ROB] Finish storing memory, rob tag : ",nowPtr," ;PC : %h ",pcs[nowPtr]," ;value :%o",value[nowPtr]," ;Address : %h",dest[nowPtr]);
+                    //    $display($time," [ROB] Finish storing memory, rob tag : ",nowPtr," ;PC : %h ",pcs[nowPtr]," ;value :%o",value[nowPtr]," ;Address : %h",dest[nowPtr]);
                        
                         end
                     end 
@@ -265,10 +265,10 @@ module rob(
                 if(status == IDLE) begin
                     status <= WAIT_MEM;
                     out_mem_load_flag <= `TRUE;
-                     $display($time," [ROB] Start IO_READ : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]," ready : ",ready[nowPtr]);
+                   //  $display($time," [ROB] Start IO_READ : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]," ready : ",ready[nowPtr]);
                 end else if(status == WAIT_MEM) begin 
                     if(in_mem_flag == `TRUE) begin 
-                         $display($time," [ROB] Finish IO_READ : ",nowPtr, " pc: %h",pcs[nowPtr]," data : %o",in_mem_data);
+                    //     $display($time," [ROB] Finish IO_READ : ",nowPtr, " pc: %h",pcs[nowPtr]," data : %o",in_mem_data);
                         status <= IDLE;                            
                         out_reg_index <= dest[nowPtr][`REG_POS_TYPE];
                         out_reg_rob_tag <= nowPtr;
@@ -289,7 +289,7 @@ module rob(
             out_rob_tag <= `ZERO_ROB;
             out_mem_load_flag <= `FALSE;
             out_xbp <= `FALSE;
-            head <= 1;tail <= 1;
+            
             out_reg_index <= `ZERO_REG;
             out_mem_flag <= `FALSE;
             status <= IDLE;
@@ -298,7 +298,8 @@ module rob(
                 value[i] <= `ZERO_WORD;
                 isStore[i] <= `FALSE;
                 isIOread[i] <= `FALSE;
-            end
+                end
+            head <= 1;tail <= 1;
             end
         end
          

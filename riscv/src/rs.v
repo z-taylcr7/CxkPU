@@ -131,22 +131,24 @@ integer i;
 
                     if(in_alu_cdb_pos!=`ZERO_ROB)begin
                         if(in_alu_cdb_pos==in_decoder_tag1)begin
-                            value1[free_tag]=in_alu_cdb_value;
-                            value1_tag[free_tag]=`ZERO_ROB;
+                            // $display($time," [RS] quick forwarding happens",in_alu_cdb_pos);
+         
+                            value1[free_tag]<=in_alu_cdb_value;
+                            value1_tag[free_tag]<=`ZERO_ROB;
                         end
                         if(in_alu_cdb_pos==in_decoder_tag2)begin
-                            value2[free_tag]=in_alu_cdb_value;
-                            value2_tag[free_tag]=`ZERO_ROB;
+                            value2[free_tag]<=in_alu_cdb_value;
+                            value2_tag[free_tag]<=`ZERO_ROB;
                         end
                     end
                     if(in_lsb_cdb_pos!=`ZERO_ROB&&in_lsb_io_in==`FALSE)begin
                         if(in_lsb_cdb_pos==in_decoder_tag1)begin
-                            value1[free_tag]=in_lsb_cdb_value;
-                            value1_tag[free_tag]=`ZERO_ROB;
+                            value1[free_tag]<=in_lsb_cdb_value;
+                            value1_tag[free_tag]<=`ZERO_ROB;
                         end
                         if(in_lsb_cdb_pos==in_decoder_tag2)begin
-                            value2[free_tag]=in_lsb_cdb_value;
-                            value2_tag[free_tag]=`ZERO_ROB;
+                            value2[free_tag]<=in_lsb_cdb_value;
+                            value2_tag[free_tag]<=`ZERO_ROB;
                         end
                     end
                 end
@@ -188,7 +190,7 @@ integer i;
                 end
             end else begin
                 //rob result misbranch, flush
-                for(i=1;i<`RS_SIZE;i=i+1)begin
+                for(i=0;i<`RS_SIZE;i=i+1)begin
                     busy[i]<=`FALSE;
                     robpos[i]<=`ZERO_ROB;
                 end

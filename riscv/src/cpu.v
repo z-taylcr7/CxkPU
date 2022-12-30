@@ -126,7 +126,7 @@ fetcher fet(
   .out_bp_tag(fetcher_to_bp_tag), .in_bp_jump_flag(bp_to_fetcher_jump_flag),
   .in_rob_xbp(rob_out_xbp), .in_rob_newpc(rob_to_fetcher_newpc)
 );
-decode dec(
+decoder dcd(
   
   .clk(clk_in),.rst(rst_in),.rdy(rdy_in),
   .in_fetcher_instr(fetcher_to_decoder_inst),.in_fetcher_pc(fetcher_to_decoder_pc),.in_fetcher_jump_flag(fetcher_to_decoder_jump_flag),

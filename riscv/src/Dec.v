@@ -1,6 +1,6 @@
 `include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 
-module decode (
+module decoder (
     input clk,input rst,input rdy,
 
     // From Fetcher

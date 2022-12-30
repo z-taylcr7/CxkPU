@@ -1,25 +1,23 @@
 #include "io.h"
-//input: 1 2 3 4
-
+// input: 1 2 3 4
 int a[4];
+int *pa = a;
 int main()
 {
-    int b[4];
+    int *pb[4];
 	int i;
-    for (i = 0; i < 4; i++)
-	{
-		a[i] = 0;
-		b[i] = inl();
-	}
+	pb[0] = pa;
+	pb[1] = pa;
+	pb[2] = pa;
+	pb[3] = pa;
+	outlln(4);
 	for (i = 0; i < 4; i++)
-	{
-		outl(a[i]);
-	}
+		pb[0][i] = inl();
+	for (i = 0; i < 4; i++)
+		outl(pb[1][i]);
 	println("");
-	int *p;
-	p=b;
 	for (i = 0; i < 4; i++)
-	{
-		outl(p[i]);
-	}
+		pb[2][i] = 0;
+	for (i = 0; i < 4; i++)
+		outl(pb[3][i]);
 }
