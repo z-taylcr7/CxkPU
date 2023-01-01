@@ -72,6 +72,8 @@ module rob(
     localparam IDLE = 0,WAIT_MEM = 1;
     reg status; // 0 means idle and 1 means waiting for memory.
 
+wire [`DATA_TYPE]testval;
+assign testval=value[nowPtr];
     // information storage
         reg [`DATA_TYPE] value [(`ROB_SIZE-1):0];
         reg [`DATA_TYPE] dest [(`ROB_SIZE-1):0]; // Registers index is low bits of that
@@ -137,6 +139,7 @@ module rob(
                 end
             end else if(rdy==`TRUE && out_xbp==`FALSE)begin
                 out_reg_index<=`ZERO_REG;
+                out_reg_value<=`ZERO_WORD;
                 out_rob_tag<=`ZERO_ROB;
                 out_mem_flag=`FALSE;
                 out_mem_load_flag<=`FALSE;
@@ -150,6 +153,7 @@ module rob(
                     dest[nextPtr] <= in_decoder_dest;
                     op[nextPtr] <= in_decoder_op;
                     pcs[nextPtr]<=in_decoder_pc;
+                    value[nextPtr]<=`ZERO_WORD;
                     if(in_decoder_op==`OPENUM_SB||in_decoder_op==`OPENUM_SH||in_decoder_op==`OPENUM_SW)begin
                         isStore[nextPtr]<=`TRUE;
                     end else begin
@@ -162,9 +166,9 @@ module rob(
                     ready[in_lsb_cdb_tag] <= (in_lsb_io_in == `TRUE) ? `FALSE : `TRUE;
                     value[in_lsb_cdb_tag] <= in_lsb_cdb_value;
                     isIOread[in_lsb_cdb_tag] <= (in_lsb_io_in == `TRUE) ? `TRUE : `FALSE;
-                        if(isStore[in_lsb_cdb_tag]) begin 
+                    if(isStore[in_lsb_cdb_tag]) begin 
                             dest[in_lsb_cdb_tag] <= in_lsb_cdb_dest;
-                        end
+                        end    
                 end
                 if(in_alu_cdb_tag != `ZERO_ROB) begin
                     value[in_alu_cdb_tag] <= in_alu_cdb_value;
@@ -174,7 +178,7 @@ module rob(
                 //commit! now!
                 if(ready[nowPtr]==`TRUE&&head!=tail)begin
                     if(status==IDLE)begin
-                       // $display($time," [ROB] Start Committing : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]);
+                 //       $display($time," [ROB] Start Committing : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]);
                    //     if(op[nowPtr]==`OPENUM_JALR) $display($time," [ROB] newpc= ",newpc[nowPtr]," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
                                 
                         case (op[nowPtr])
@@ -186,7 +190,7 @@ module rob(
                                 out_reg_index<=dest[nowPtr][`REG_POS_TYPE];
                                 out_reg_value<=value[nowPtr];
                                 out_reg_rob_tag<=nowPtr;
-                                out_newpc=newpc[nowPtr];
+                                out_newpc<=newpc[nowPtr];
                                 out_xbp<=`TRUE;
                             end
                             // `OPENUM_JAL:begin
@@ -203,7 +207,7 @@ module rob(
                                    out_bp_jump_flag<=`TRUE;
                                     if(predictions[nowPtr]==`FALSE)begin
                                        
-                                   // $display($time," [ROB] Misbranch should jump: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
+                                    $display($time," [ROB] Misbranch should jump: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
                                 
                                       out_xbp<=`TRUE;
                                         out_newpc<=newpc[nowPtr];                                
@@ -213,7 +217,7 @@ module rob(
                                      out_bp_jump_flag<=`FALSE;
                                     if(predictions[nowPtr]==`TRUE)begin
                                      
-                                 //   $display($time," [ROB] Misbranch shouldnot jump rob_tag: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",pcs[nowPtr] + 4);
+                                    $display($time," [ROB] Misbranch shouldnot jump rob_tag: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",pcs[nowPtr] + 4);
                                    out_xbp<=`TRUE;
                                         out_newpc<=pcs[nowPtr]+`NEXT_PC;                                
                                     end
@@ -256,19 +260,19 @@ module rob(
                               status <= IDLE;
                         isStore[nowPtr] <= `FALSE;  
                         head <= nowPtr;
-                    //    $display($time," [ROB] Finish storing memory, rob tag : ",nowPtr," ;PC : %h ",pcs[nowPtr]," ;value :%o",value[nowPtr]," ;Address : %h",dest[nowPtr]);
+                       //$display($time," [ROB] Finish storing memory, rob tag : ",nowPtr," ;PC : %h ",pcs[nowPtr]," ;value :%o",value[nowPtr]," ;Address : %h",dest[nowPtr]);
                        
-                        end
+                        end 
                     end 
                 end
             else if(isIOread[nowPtr] == `TRUE && head != tail) begin 
                 if(status == IDLE) begin
                     status <= WAIT_MEM;
                     out_mem_load_flag <= `TRUE;
-                   //  $display($time," [ROB] Start IO_READ : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]," ready : ",ready[nowPtr]);
+                     //$display($time," [ROB] Start IO_READ : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]," ready : ",ready[nowPtr]);
                 end else if(status == WAIT_MEM) begin 
                     if(in_mem_flag == `TRUE) begin 
-                    //     $display($time," [ROB] Finish IO_READ : ",nowPtr, " pc: %h",pcs[nowPtr]," data : %o",in_mem_data);
+                       // $display($time," [ROB] Finish IO_READ : ",nowPtr, " pc: %h",pcs[nowPtr]," data : %o",in_mem_data);
                         status <= IDLE;                            
                         out_reg_index <= dest[nowPtr][`REG_POS_TYPE];
                         out_reg_rob_tag <= nowPtr;

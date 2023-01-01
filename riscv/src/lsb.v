@@ -119,7 +119,7 @@ module lsb(
             out_mem_flag <= `FALSE;
             out_mem_address <= `ZERO_WORD;
             out_io_in <= `FALSE;
-            for(j = 0;j < `LSB_SIZE;j=j+1) begin 
+            for(j = 1;j < `LSB_SIZE;j=j+1) begin 
                 address_ready[j] <= `FALSE;
                 address[j] <= `ZERO_WORD;
                 busy[j] <= `FALSE;
@@ -153,12 +153,14 @@ module lsb(
                                 address_ready[nowPtr] <= `FALSE;
                                 out_io_in <= `TRUE;
                                 head <= nowPtr;
+                              //   $display($time, " nowPtr: ",nowPtr,"addr:",address[nowPtr]);
                             end else if(in_rob_check == `FALSE && address[nowPtr] != out_dest) begin
                                 status <= WAIT_MEM;
                                 out_mem_signed <= (op[nowPtr] == `OPENUM_LB) ? 1 : 0; 
                                 out_mem_flag <= `TRUE;
                                 out_mem_size <= 1;
                                 out_mem_address <= address[nowPtr];
+                              //  $display($time, " nowPtr: ",nowPtr,"addr:",address[nowPtr]);
                             end
                         end
                         `OPENUM_LH,`OPENUM_LHU: begin 
@@ -195,6 +197,7 @@ module lsb(
             if(calculate_tag != `ZERO_LSB) begin 
                 address[calculate_tag] <= value1[calculate_tag] + imms[calculate_tag];
                 address_ready[calculate_tag] <= `TRUE;
+               // $display($time," nowPtr: ",nowPtr, " cal addr: ",value1[calculate_tag],"  ",imms[calculate_tag]);
                 
            
             end

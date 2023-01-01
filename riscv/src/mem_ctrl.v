@@ -82,7 +82,6 @@ module memCtrl(
     wire test;
     wire lsblsbflag;
     assign test=(in_rob_flag)?`TRUE:`FALSE;
-    assign lsblsbflag=(in_lsb_flag)?`TRUE:`FALSE;
     // Combinatorial logic
     assign buffered_status = (io_flag == `TRUE) ? IO_READ :
                                 (wb_is_empty == `FALSE) ? ROB_WRITE : 
@@ -129,9 +128,10 @@ module memCtrl(
             out_lsb_flag <= `FALSE;
             out_fetcher_flag <= `FALSE;
             out_ram_data <= 0;
+            //out_data <= `ZERO_WORD;
             if(in_rob_load_flag == `TRUE) begin io_flag <= `TRUE; end
             if(in_fetcher_flag == `TRUE) begin fetcher_flag <= `TRUE;end
-            if(lsblsbflag == `TRUE) begin lsb_flag <= `TRUE; end 
+            if(in_lsb_flag == `TRUE) begin lsb_flag <= `TRUE; end 
             
             if(test == `TRUE || rob_flag == `TRUE) begin  
                 if(wb_is_full == `FALSE) begin 
@@ -150,9 +150,14 @@ module memCtrl(
             case(status)
                 IO_READ:begin 
                     case(stages) 
-                        1:begin out_ram_address <= `ZERO_WORD; end
+                        1:begin out_ram_address <= `RAM_IO_PORT; end
                         2:begin
+                            if(out_ram_address==`ZERO_WORD)begin
+                                out_data<=`ZERO_WORD;
+                            end else begin
+                                
                             out_data <= in_ram_data;
+                            end
                             stages <= 1;
                             io_flag <= `FALSE;
                             out_rob_flag <= `TRUE;
@@ -223,7 +228,6 @@ module memCtrl(
                         end
                         4: begin 
                             case(stages) 
-                                // 1: begin out_ram_address <= in_lsb_addr; end 
                                 2: begin out_data[7:0] <= in_ram_data; end
                                 3: begin out_data[15:8] <= in_ram_data; end
                                 4: begin out_data[23:16] <= in_ram_data; end 
@@ -246,7 +250,6 @@ module memCtrl(
                 end
                 FETCHER_READ:begin
                     case(stages) 
-                        // 1: begin out_ram_address <= in_fetcher_addr; end
                         2: begin out_data[7:0] <= in_ram_data; end
                         3: begin out_data[15:8] <= in_ram_data; end
                         4: begin out_data[23:16] <= in_ram_data; end 
@@ -269,12 +272,15 @@ module memCtrl(
                     stages <= 1;
                     status <= buffered_status;
                     out_data<=`ZERO_WORD;
+                
+
                     out_ram_address <=  (buffered_status == IO_READ) ? `RAM_IO_PORT :
                                             (buffered_status == ROB_WRITE) ? `ZERO_WORD : 
                                                 (buffered_status == LSB_READ) ? in_lsb_addr :
                                                     (buffered_status == FETCHER_READ) ? in_fetcher_addr : `ZERO_WORD;
                 end
             endcase
+            
         end else if(rdy == `TRUE && in_rob_xbp == `TRUE) begin 
             fetcher_flag <= `FALSE;
             out_fetcher_flag <= `FALSE;

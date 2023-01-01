@@ -52,9 +52,9 @@ module regfile(
         for(k=1;k<`REG_SIZE;k=k+1) begin:ROBWriteReg 
     always @(posedge clk ) begin
         if(rst==`TRUE)begin
-            values[k]=`ZERO_WORD;
-            rename[k]=`ZERO_ROB;
-            busy[k]=`FALSE;
+            values[k]<=`ZERO_WORD;
+            rename[k]<=`ZERO_ROB;
+            busy[k]<=`FALSE;
         end 
         if(rdy&&rst==`FALSE)begin
           if(in_rob_commit_reg==k)begin
