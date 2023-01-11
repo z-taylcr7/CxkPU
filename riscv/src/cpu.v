@@ -1,13 +1,23 @@
- `include"/mnt/d/CPU/CxkPU/riscv/src/bp.v"
- `include"/mnt/d/CPU/CxkPU/riscv/src/rs.v"
- `include"/mnt/d/CPU/CxkPU/riscv/src/lsb.v"
- `include"/mnt/d/CPU/CxkPU/riscv/src/mem_ctrl.v"
- `include"/mnt/d/CPU/CxkPU/riscv/src/Fetcher.v"
- `include"/mnt/d/CPU/CxkPU/riscv/src/rob.v"
- `include"/mnt/d/CPU/CxkPU/riscv/src/alu.v"
- `include "/mnt/d/CPU/CxkPU/riscv/src/Dec.v"
-`include"/mnt/d/CPU/CxkPU/riscv/src/definition.v"
- `include"/mnt/d/CPU/CxkPU/riscv/src/regfile.v"
+//  `include"/mnt/d/CPU/CxkPU/riscv/src/bp.v"
+//  `include"/mnt/d/CPU/CxkPU/riscv/src/rs.v"
+//  `include"/mnt/d/CPU/CxkPU/riscv/src/lsb.v"
+//  `include"/mnt/d/CPU/CxkPU/riscv/src/mem_ctrl.v"
+//  `include"/mnt/d/CPU/CxkPU/riscv/src/Fetcher.v"
+//  `include"/mnt/d/CPU/CxkPU/riscv/src/rob.v"
+//  `include"/mnt/d/CPU/CxkPU/riscv/src/alu.v"
+//  `include "/mnt/d/CPU/CxkPU/riscv/src/Dec.v"
+//  `include"/mnt/d/CPU/CxkPU/riscv/src/regfile.v" 
+ //`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+ `include"D:\CPU\CxkPU\riscv\src\definition.v"
+ `include"D:\CPU\CxkPU\riscv\src\rs.v"
+ `include"D:\CPU\CxkPU\riscv\src\bp.v"
+ `include"D:\CPU\CxkPU\riscv\src\lsb.v"
+ `include"D:\CPU\CxkPU\riscv\src\mem_ctrl.v"
+ `include"D:\CPU\CxkPU\riscv\src\Fetcher.v"
+ `include"D:\CPU\CxkPU\riscv\src\rob.v"
+ `include"D:\CPU\CxkPU\riscv\src\alu.v"
+ `include "D:\CPU\CxkPU\riscv\src\Dec.v"
+ `include"D:\CPU\CxkPU\riscv\src\regfile.v" 
 module cpu(
   input  wire                 clk_in,			// system clock signal
   input  wire                 rst_in,			// reset signal
@@ -36,26 +46,26 @@ wire fetcher_out_store_flag;
 wire [`REG_POS_TYPE] decoder_to_reg_tag1;
 wire [`REG_POS_TYPE] decoder_to_reg_tag2;
 wire [`REG_POS_TYPE] decoder_to_reg_dest;
-wire [`ROB_POS_TYPE] decoder_to_reg_robtag;
 wire [`ROB_POS_TYPE] decoder_to_rob_fetch_tag1;
 wire [`ROB_POS_TYPE] decoder_to_rob_fetch_tag2;
 wire [`DATA_TYPE] decoder_to_rob_store_dest;
 wire [`OPENUM_TYPE] decoder_to_rob_store_op;
+wire [`ROB_POS_TYPE] decoder_to_reg_robtag;
 wire decoder_to_rob_jump_flag;
-wire [`ROB_POS_TYPE] decoder_to_rs_rob_tag;
-wire [`OPENUM_TYPE] decoder_to_rs_op;
 wire [`DATA_TYPE] decoder_to_rs_value1;
 wire [`DATA_TYPE] decoder_to_rs_value2;
 wire [`ROB_POS_TYPE] decoder_to_rs_tag1;
 wire [`ROB_POS_TYPE] decoder_to_rs_tag2;
+wire [`ROB_POS_TYPE] decoder_to_rs_rob_tag;
+wire [`OPENUM_TYPE] decoder_to_rs_op;
 wire [`DATA_TYPE] decoder_to_rs_imm;
 wire [`DATA_TYPE] decoder_to_rs_pc;
-wire [`ROB_POS_TYPE] decoder_to_lsb_rob_tag;
 wire [`OPENUM_TYPE] decoder_to_lsb_op;
 wire [`DATA_TYPE] decoder_to_lsb_value1;
 wire [`DATA_TYPE] decoder_to_lsb_value2;
 wire [`ROB_POS_TYPE] decoder_to_lsb_tag1;
 wire [`ROB_POS_TYPE] decoder_to_lsb_tag2;
+wire [`ROB_POS_TYPE] decoder_to_lsb_rob_tag;
 wire [`DATA_TYPE] decoder_to_lsb_imm;
 //mem to
 wire mem_to_fetcher_flag;
@@ -82,20 +92,20 @@ wire lsb_to_fetcher_idle;
 wire [`DATA_TYPE] lsb_out_cdb_value;
 wire [`ROB_POS_TYPE] lsb_out_cdb_tag;
 wire [`DATA_TYPE] lsb_out_cdb_dest;
-wire [`DATA_TYPE] lsb_to_rob_address;
-wire lsb_to_mem_flag;
 wire [5:0] lsb_to_mem_size;
 wire lsb_to_mem_signed;
 wire [`DATA_TYPE] lsb_to_mem_address;
 wire lsb_out_io_in;
+wire [`DATA_TYPE] lsb_to_rob_address;
+wire lsb_to_mem_flag;
 //rob to
 wire rob_to_fetcher_idle;
 wire rob_out_xbp;
 wire [`DATA_TYPE] rob_to_fetcher_newpc;
 wire [`ROB_POS_TYPE] rob_to_decoder_freetag;
 wire [`DATA_TYPE] rob_to_decoder_fetch_value1;
-wire rob_to_decoder_fetch_ready1;
 wire [`DATA_TYPE] rob_to_decoder_fetch_value2;
+wire rob_to_decoder_fetch_ready1;
 wire rob_to_decoder_fetch_ready2;
 wire rob_to_lsb_check;
 wire [`REG_POS_TYPE] rob_to_reg_index;
@@ -129,7 +139,7 @@ fetcher fet(
 decoder dcd(
   
   .clk(clk_in),.rst(rst_in),.rdy(rdy_in),
-  .in_fetcher_instr(fetcher_to_decoder_inst),.in_fetcher_pc(fetcher_to_decoder_pc),.in_fetcher_jump_flag(fetcher_to_decoder_jump_flag),
+  .in_fetcher_inst(fetcher_to_decoder_inst),.in_fetcher_pc(fetcher_to_decoder_pc),.in_fetcher_jump_flag(fetcher_to_decoder_jump_flag),
   .out_reg_tag1(decoder_to_reg_tag1),.in_reg_value1(reg_to_decoder_value1),.in_reg_robtag1(reg_to_decoder_robtag1),.in_reg_busy1(reg_to_decoder_busy1),
   .out_reg_tag2(decoder_to_reg_tag2),.in_reg_value2(reg_to_decoder_value2),.in_reg_robtag2(reg_to_decoder_robtag2),.in_reg_busy2(reg_to_decoder_busy2),
   .out_reg_dest(decoder_to_reg_dest),.out_reg_rob_tag(decoder_to_reg_robtag),
@@ -155,12 +165,19 @@ RS rs(
   .in_decoder_tag2(decoder_to_rs_tag2),
   .in_decoder_pc(decoder_to_rs_pc),
 
-  .in_alu_cdb_value(alu_out_cdb_value),.in_alu_cdb_pos(alu_out_cdb_tag),
-  .in_lsb_cdb_pos(lsb_out_cdb_tag),.in_lsb_cdb_value(lsb_out_cdb_value),
+  .in_alu_cdb_value(alu_out_cdb_value),
+  .in_alu_cdb_pos(alu_out_cdb_tag),
+  .in_lsb_cdb_pos(lsb_out_cdb_tag),
+  .in_lsb_cdb_value(lsb_out_cdb_value),
   .in_lsb_io_in(lsb_out_io_in),
-  .in_rob_cdb_pos(rob_out_tag), .in_rob_cdb_value(rob_out_value),
-  .out_alu_op(rs_to_alu_op), .out_alu_value1(rs_to_alu_value1), .out_alu_value2(rs_to_alu_value2), 
-  .out_alu_imm(rs_to_alu_imm), .out_alu_rob_pos(rs_to_alu_rob_tag), .out_alu_pc(rs_to_alu_pc),
+  .in_rob_cdb_pos(rob_out_tag),
+  .in_rob_cdb_value(rob_out_value),
+  .out_alu_op(rs_to_alu_op),
+  .out_alu_value1(rs_to_alu_value1), 
+  .out_alu_value2(rs_to_alu_value2), 
+  .out_alu_imm(rs_to_alu_imm),
+  .out_alu_rob_pos(rs_to_alu_rob_tag), 
+  .out_alu_pc(rs_to_alu_pc),
   .in_rob_xbp(rob_out_xbp)
 );
 
@@ -219,7 +236,7 @@ memCtrl mem(
   .in_rob_xbp(rob_out_xbp)
 );
 
-regfile regs(
+regfile reg(
   .clk(clk_in), .rst(rst_in), .rdy(rdy_in),
   .in_fetcher_flag(fetcher_out_store_flag),
   .in_decoder_reg1(decoder_to_reg_tag1), .out_decoder_value1(reg_to_decoder_value1), .out_decoder_rob1(reg_to_decoder_robtag1), .out_decoder_busy1(reg_to_decoder_busy1),

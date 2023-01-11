@@ -1,4 +1,5 @@
-`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+//`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+`include "D:\CPU\CxkPU\riscv\src\definition.v"
 module ALU (
     input clk,input rst,input rdy,
     // input from rs 
@@ -58,14 +59,16 @@ module ALU (
                 `OPENUM_BGEU: begin 
                     out_value = (in_value1 >= in_value2) ? `JUMP_ENABLE : `JUMP_DISABLE;
                     out_newpc = in_pc + in_imm;
-                end
+                        end
 
                 `OPENUM_ADDI: begin out_value = in_value1 + in_imm; end
                 `OPENUM_SLTI: begin out_value = ($signed(in_value1) < $signed(in_imm)) ? 1 : 0; end
                 `OPENUM_SLTIU: begin out_value = (in_value1 < in_imm) ? 1 : 0; end
                 `OPENUM_XORI: begin out_value = in_value1 ^ in_imm; end
                 `OPENUM_ORI: begin out_value =  in_value1 | in_imm; end   
-                `OPENUM_ANDI: begin out_value = in_value1 & in_imm; end  
+                `OPENUM_ANDI: begin out_value = in_value1 & in_imm;
+                 //$display($time," ",in_value1," >=? ",in_imm);
+            end  
                 `OPENUM_SLLI: begin out_value = in_value1 << in_imm; end
                 `OPENUM_SRLI: begin out_value = in_value1 >> in_imm; end
                 `OPENUM_SRAI: begin out_value = in_value1 >>> in_imm; end 

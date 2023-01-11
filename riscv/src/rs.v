@@ -1,4 +1,7 @@
-`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+// `include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+
+
+`include "D:/CPU/CxkPU/riscv/src/definition.v"
 module RS (
     input clk,input rst,input rdy,
     // from fetcher to decide whether to store the input

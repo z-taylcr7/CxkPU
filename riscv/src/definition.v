@@ -1,7 +1,6 @@
 `timescale 1ns / 1ps
 
-// debug macro
-`define DEBUG
+
 
 // flag: protocol with ram.v
 `define FLAG_READ 1'b0
@@ -44,7 +43,7 @@
 `define REG_POS_TYPE 4:0
 `define ROB_POS_TYPE 3:0
 `define BP_POS_TYPE 7:0
-
+`define BP_HASH_TYPE 8:1
 `define RS_ID_TYPE 4:0
 `define ROB_ID_TYPE 4:0
 `define LSB_ID_TYPE 4:0
@@ -58,7 +57,6 @@
 
 // 2^6 op enum
 `define OPENUM_NOP     6'd0
-
 `define OPENUM_LUI     6'd1
 `define OPENUM_AUIPC   6'd2
 

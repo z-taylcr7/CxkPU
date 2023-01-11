@@ -3,9 +3,9 @@
 // `include"/mnt/d/CPU/CxkPU/riscv/src/hci.v"
 // riscv top module file
 // modification allowed for debugging purposes
-`include"/mnt/d/CPU/CxkPU/riscv/src/cpu.v"
-`include"/mnt/d/CPU/CxkPU/riscv/src/hci.v"
-`include"/mnt/d/CPU/CxkPU/riscv/src/ram.v"
+`include"D:\CPU\CxkPU\riscv\src\cpu.v"
+`include"D:\CPU\CxkPU\riscv\src\hci.v"
+`include"D:\CPU\CxkPU\riscv\src\ram.v"
 module riscv_top
 #(
 	parameter SIM = 0						// whether in simulation

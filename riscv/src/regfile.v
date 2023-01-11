@@ -1,4 +1,7 @@
-`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+// `include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+
+
+`include "D:\CPU\CxkPU\riscv\src\definition.v"
 module regfile(
      input wire clk,
     //rst is currently false!
@@ -56,9 +59,10 @@ module regfile(
             rename[k]<=`ZERO_ROB;
             busy[k]<=`FALSE;
         end 
-        if(rdy&&rst==`FALSE)begin
+        if(rdy&&~rst)begin
           if(in_rob_commit_reg==k)begin
             values[in_rob_commit_reg]<=in_rob_commit_value;
+           // $display($time," ",k,in_rob_commit_value);
             if(in_rob_commit_rob==rename[k])begin
                 busy[k]<=`FALSE;
             end

@@ -27,11 +27,11 @@
 
 // modification allowed for debugging purposes
 
-`include"/mnt/d/CPU/CxkPU/riscv/src/common/fifo/fifo.v"
-`include"/mnt/d/CPU/CxkPU/riscv/src/common/uart/uart.v"
-`include"/mnt/d/CPU/CxkPU/riscv/src/common/uart/uart_tx.v"
-`include"/mnt/d/CPU/CxkPU/riscv/src/common/uart/uart_rx.v"
-`include"/mnt/d/CPU/CxkPU/riscv/src/common/uart/uart_baud_clk.v"
+`include"D:\CPU\CxkPU\riscv\src\common\fifo\fifo.v"
+`include"D:\CPU\CxkPU\riscv\src\common\uart\uart.v"
+`include"D:\CPU\CxkPU\riscv\src\common\uart\uart_tx.v"
+`include"D:\CPU\CxkPU\riscv\src\common\uart\uart_rx.v"
+`include"D:\CPU\CxkPU\riscv\src\common\uart\uart_baud_clk.v"
 module hci
 #(
   parameter SYS_CLK_FREQ = 100000000,

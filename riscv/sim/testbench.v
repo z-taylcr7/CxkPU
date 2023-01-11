@@ -23,7 +23,11 @@ initial begin
   rst=0; 
   forever #1 clk=!clk;
 
-  $finish;
+   $finish;
 end
-
+initial begin
+    //  $dumpfile("test.vcd");
+    //  $dumpvars(0, testbench);
+    //  #5000000 $finish;
+end
 endmodule

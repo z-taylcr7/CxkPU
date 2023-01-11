@@ -1,4 +1,6 @@
-`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+// `include "D:/CPU/CxkPU/riscv/src/definition.v"
+
+`include "D:\CPU\CxkPU\riscv\src\definition.v"
 module lsb(
     input clk,input rst,input rdy,
 
@@ -48,12 +50,10 @@ module lsb(
     // from ROB to denote that br wrong
     input in_rob_xbp
 );
-    // Load  寄存器目的地已知，缺地址(x[rs1] + imm) 和 value(from memory)
-    // Store 缺目的地(Memory_address: x[rs1] + imm) 和 value(x[rs2])
 
     // Data structure 
     localparam IDLE = 1'b0,WAIT_MEM = 1'b1;
-    reg status; // 0 means idle ; 1 means waiting for memory
+    reg status; 
     reg busy[(`LSB_SIZE-1):0];
     
     //fifo queueueueue
@@ -88,26 +88,26 @@ module lsb(
     genvar i;
     generate
         for(i = 1;i < `LSB_SIZE;i=i+1) begin 
+            //issue: data is known
             assign ready_to_issue[i] = (busy[i] == `TRUE) && (value2_tag[i] == `ZERO_ROB) && (address_ready[i] == `TRUE);
+            //calculate addr: rs1 and offset known
             assign ready_to_calculate_addr[i] = (busy[i] == `TRUE) && (value1_tag[i] == `ZERO_ROB) && (address_ready[i] == `FALSE);
         end
     endgenerate
-
-    assign calculate_tag = ready_to_calculate_addr[1] ? 1 : 
-                        ready_to_calculate_addr[2] ? 2 : 
-                        ready_to_calculate_addr[3] ? 3 :
-                        ready_to_calculate_addr[4] ? 4 :
-                        ready_to_calculate_addr[5] ? 5 :
-                        ready_to_calculate_addr[6] ? 6 :
-                        ready_to_calculate_addr[7] ? 7 : 
-                        ready_to_calculate_addr[8] ? 8 : 
-                        ready_to_calculate_addr[9] ? 9 :
-                        ready_to_calculate_addr[10] ? 10 :
-                        ready_to_calculate_addr[11] ? 11 :
-                        ready_to_calculate_addr[12] ? 12 :
-                        ready_to_calculate_addr[13] ? 13 :
-                        ready_to_calculate_addr[14] ? 14 :
-                        ready_to_calculate_addr[15] ? 15 : `ZERO_LSB;
+    //ready to calculate address
+    integer k;
+    always @(*) begin
+        
+        for(k=1;k<`LSB_SIZE;k=k+1)begin
+            if(ready_to_calculate_addr[k])begin
+                calculate_tag<=k;
+                break;
+            end
+            if(k==15)begin
+                calculate_tag<=`ZERO_LSB;
+            end
+        end
+    end
 
     integer j;
     always @(posedge clk) begin 
@@ -136,15 +136,7 @@ module lsb(
             if(ready_to_issue[nowPtr] == `TRUE) begin 
                 if(status == IDLE) begin 
                      case(op[nowPtr])
-                        `OPENUM_SB,`OPENUM_SH,`OPENUM_SW: begin
-                            status <= IDLE;
-                            out_dest <= address[nowPtr];
-                            out_value <= value2[nowPtr];
-                            out_rob_tag <= tags[nowPtr];
-                            busy[nowPtr] <= `FALSE;
-                            address_ready[nowPtr] <= `FALSE;
-                            head <= nowPtr;
-                        end
+                        
                         `OPENUM_LB,`OPENUM_LBU: begin
                             if(address[nowPtr] == `RAM_IO_PORT) begin 
                                 status <= IDLE;
@@ -180,6 +172,15 @@ module lsb(
                                 out_mem_address <= address[nowPtr];
                             end
                         end
+                        `OPENUM_SB,`OPENUM_SH,`OPENUM_SW: begin
+                            status <= IDLE;
+                            out_dest <= address[nowPtr];
+                            out_value <= value2[nowPtr];
+                            out_rob_tag <= tags[nowPtr];
+                            busy[nowPtr] <= `FALSE;
+                            address_ready[nowPtr] <= `FALSE;
+                            head <= nowPtr;
+                        end
                     endcase
                 end else if(status == WAIT_MEM) begin
                     if(in_mem_flag == `TRUE) begin 
@@ -203,16 +204,6 @@ module lsb(
             end
             // Store new entry into LSB
             if(in_fetcher_flag == `TRUE && in_decoder_rob_tag != `ZERO_ROB && in_decoder_op != `OPENUM_NOP) begin
-                busy[nextPtr] <= `TRUE;
-                tail <= nextPtr;
-                tags[nextPtr] <= in_decoder_rob_tag;
-                op[nextPtr] <= in_decoder_op;
-                address_ready[nextPtr] <= `FALSE;
-                imms[nextPtr] <= in_decoder_imm;
-                value1[nextPtr] <= in_decoder_value1;
-                value2[nextPtr] <= in_decoder_value2;
-                value1_tag[nextPtr] <= in_decoder_tag1;
-                value2_tag[nextPtr] <= in_decoder_tag2;
                 // Quick update when CDB Broadcast
                 if(in_alu_cdb_tag != `ZERO_ROB) begin 
                     if(in_decoder_tag1 == in_alu_cdb_tag) begin 
@@ -234,6 +225,17 @@ module lsb(
                         value2_tag[nextPtr] <= `ZERO_ROB;
                     end
                 end
+                busy[nextPtr] <= `TRUE;
+                tail <= nextPtr;
+                tags[nextPtr] <= in_decoder_rob_tag;
+                op[nextPtr] <= in_decoder_op;
+                address_ready[nextPtr] <= `FALSE;
+                imms[nextPtr] <= in_decoder_imm;
+                value1[nextPtr] <= in_decoder_value1;
+                value2[nextPtr] <= in_decoder_value2;
+                value1_tag[nextPtr] <= in_decoder_tag1;
+                value2_tag[nextPtr] <= in_decoder_tag2;
+                
             end
             
             for(j = 1;j < `LSB_SIZE;j=j+1) begin 
@@ -274,7 +276,7 @@ module lsb(
                 end
             end
 
-        end else if(rdy == `TRUE && in_rob_xbp == `TRUE) begin 
+        end else if(rdy && in_rob_xbp) begin 
             //flush
             head <= 1; 
             tail <= 1;

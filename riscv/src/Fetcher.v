@@ -1,4 +1,5 @@
-`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+//`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+`include "D:\CPU\CxkPU\riscv\src\definition.v"
 module fetcher (
     input clk,input rst,input rdy,
     
@@ -43,11 +44,11 @@ module fetcher (
     reg [24:0] icache_tag [(`ICACHE_SIZE-1):0];
     reg [`DATA_TYPE] icache_inst [(`ICACHE_SIZE-1):0];
     
-    assign out_bp_tag = pc[9:2];
+    assign out_bp_tag = pc[`BP_HASH_TYPE];
 
     integer i;
     always@(posedge clk) begin
-        if(rst == `TRUE) begin 
+        if(rst) begin 
             status <= IDLE;
             pc <= `ZERO_WORD;
             out_inst <= `ZERO_WORD;
@@ -56,7 +57,7 @@ module fetcher (
             for(i=0;i < `ICACHE_SIZE;i=i+1) begin
                 icache_valid[i] <= `FALSE;
             end 
-        end else if(rdy == `TRUE) begin 
+        end else if(rdy) begin 
             
             out_store_flag <= `FALSE;
             out_mem_flag <= `FALSE;
@@ -108,7 +109,7 @@ module fetcher (
                         out_mem_pc <= pc;
                     end
                 end else if(status == WAIT_MEM) begin 
-                    if(in_mem_flag == `TRUE) begin 
+                    if(in_mem_flag) begin 
                         out_pc <= pc;out_inst <= in_mem_inst;
                         // update icache
                         icache_valid[pc[`ICACHE_INDEX_RANGE]] <= `TRUE;
@@ -137,7 +138,7 @@ module fetcher (
                             end else begin pc <= pc + 4; end
                         end else begin status <= WAIT_IDLE; end
                     end
-                end else if(status == WAIT_IDLE && next_idle == `TRUE) begin 
+                end else if(status == WAIT_IDLE && next_idle) begin 
                     out_store_flag <= `TRUE;
                     status <= IDLE;
                     if(out_inst[`OPCODE_RANGE] == `OPCODE_JAL) begin

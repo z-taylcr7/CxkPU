@@ -1,4 +1,7 @@
-`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+// `include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+
+
+`include "D:\CPU\CxkPU\riscv\src\definition.v"
 module rob(
     input wire clk,
     //rst is currently false!
@@ -42,12 +45,10 @@ module rob(
     input [`DATA_TYPE] in_lsb_now_addr,
     output out_lsb_check,
 
-    // commit : to register
-    output reg[`REG_POS_TYPE] out_reg_index, // zero means there is no data
+    output reg[`REG_POS_TYPE] out_reg_index, 
     output reg[`ROB_POS_TYPE] out_reg_rob_tag,
     output reg[`DATA_TYPE] out_reg_value,
 
-    // commit : to memory 
     output reg out_mem_flag,
     output reg [5:0] out_mem_size,
     output reg [`DATA_TYPE] out_mem_address,
@@ -56,27 +57,23 @@ module rob(
     input in_mem_flag,
     input [`DATA_TYPE] in_mem_data,
 
-    // output denote misbranch  
     output reg out_xbp,
     output reg [`DATA_TYPE] out_newpc,
 
-    //output to BP to modify
     output reg out_bp_flag,
     output reg [`BP_POS_TYPE] out_bp_tag,
     output reg out_bp_jump_flag,
 
-    //output to CDB 
-    output reg [`ROB_POS_TYPE] out_rob_tag, // zero means not to do anything
+    output reg [`ROB_POS_TYPE] out_rob_tag, 
     output reg [`DATA_TYPE] out_value
     );
-    localparam IDLE = 0,WAIT_MEM = 1;
-    reg status; // 0 means idle and 1 means waiting for memory.
 
-wire [`DATA_TYPE]testval;
-assign testval=value[nowPtr];
+    localparam IDLE = 0,WAIT_MEM = 1;
+    reg status; 
+
     // information storage
         reg [`DATA_TYPE] value [(`ROB_SIZE-1):0];
-        reg [`DATA_TYPE] dest [(`ROB_SIZE-1):0]; // Registers index is low bits of that
+        reg [`DATA_TYPE] dest [(`ROB_SIZE-1):0];
         reg ready [(`ROB_SIZE-1):0];
         reg [`OPENUM_TYPE] op [(`ROB_SIZE-1):0];
         reg [`DATA_TYPE] newpc [(`ROB_SIZE-1):0];
@@ -137,7 +134,7 @@ assign testval=value[nowPtr];
                     isStore[i] <= `FALSE;
                     isIOread[i] <= `FALSE;
                 end
-            end else if(rdy==`TRUE && out_xbp==`FALSE)begin
+            end else if(rdy && out_xbp==`FALSE)begin
                 out_reg_index<=`ZERO_REG;
                 out_reg_value<=`ZERO_WORD;
                 out_rob_tag<=`ZERO_ROB;
@@ -147,12 +144,12 @@ assign testval=value[nowPtr];
                 if(in_fetcher_flag==`TRUE&&in_decoder_op!=`OPENUM_NOP)begin
                     //store new entries
                     
-                   // $display($time," [ROB]New entry tag : ",nextPtr," opcode: %b",in_decoder_op,"; PC : %h",in_decoder_pc );
-                
-                    predictions[nextPtr] <= in_decoder_jump_flag;
-                    dest[nextPtr] <= in_decoder_dest;
+                   // $display($time," ROB-New entry tag : ",nextPtr," opcode: %b",in_decoder_op,"; PC : %h",in_decoder_pc );
                     op[nextPtr] <= in_decoder_op;
                     pcs[nextPtr]<=in_decoder_pc;
+                    predictions[nextPtr] <= in_decoder_jump_flag;
+                    dest[nextPtr] <= in_decoder_dest;
+                    
                     value[nextPtr]<=`ZERO_WORD;
                     if(in_decoder_op==`OPENUM_SB||in_decoder_op==`OPENUM_SH||in_decoder_op==`OPENUM_SW)begin
                         isStore[nextPtr]<=`TRUE;
@@ -178,8 +175,8 @@ assign testval=value[nowPtr];
                 //commit! now!
                 if(ready[nowPtr]==`TRUE&&head!=tail)begin
                     if(status==IDLE)begin
-                 //       $display($time," [ROB] Start Committing : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]);
-                   //     if(op[nowPtr]==`OPENUM_JALR) $display($time," [ROB] newpc= ",newpc[nowPtr]," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
+                 //       $display($time," ROB-Start Committing : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]);
+                      //  if(op[nowPtr]==`OPENUM_JALR) $display($time," ROB-newpc= ",newpc[nowPtr]," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
                                 
                         case (op[nowPtr])
                             `OPENUM_NOP:begin
@@ -201,23 +198,22 @@ assign testval=value[nowPtr];
                                 out_bp_flag<=`TRUE;
                                 isStore[nowPtr] <= `FALSE;
                                 head <= nowPtr;
-                                out_bp_tag<=pcs[nowPtr][9:2];
+                                out_bp_tag<=pcs[nowPtr][`BP_HASH_TYPE];
                                 status <= IDLE;
+                                // check branch res
                                 if(value[nowPtr]==`JUMP_ENABLE)begin
                                    out_bp_jump_flag<=`TRUE;
                                     if(predictions[nowPtr]==`FALSE)begin
-                                       
-                                    $display($time," [ROB] Misbranch should jump: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
-                                
-                                      out_xbp<=`TRUE;
-                                        out_newpc<=newpc[nowPtr];                                
+                               //     $display($time," ROB-Misbranch should jump: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",newpc[nowPtr]);
+                                    out_xbp<=`TRUE;
+                                    out_newpc<=newpc[nowPtr];                                
                                     end
                                 end else begin
                                     
                                      out_bp_jump_flag<=`FALSE;
                                     if(predictions[nowPtr]==`TRUE)begin
                                      
-                                    $display($time," [ROB] Misbranch shouldnot jump rob_tag: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",pcs[nowPtr] + 4);
+                                //    $display($time," ROB-Misbranch should not jump rob_tag: ",nowPtr," opcode: %b",op[nowPtr], " newpc: %h",pcs[nowPtr] + 4);
                                    out_xbp<=`TRUE;
                                         out_newpc<=pcs[nowPtr]+`NEXT_PC;                                
                                     end
@@ -260,19 +256,19 @@ assign testval=value[nowPtr];
                               status <= IDLE;
                         isStore[nowPtr] <= `FALSE;  
                         head <= nowPtr;
-                       //$display($time," [ROB] Finish storing memory, rob tag : ",nowPtr," ;PC : %h ",pcs[nowPtr]," ;value :%o",value[nowPtr]," ;Address : %h",dest[nowPtr]);
+                       //$display($time," ROB-Finish storing memory, rob tag : ",nowPtr," ;PC : %h ",pcs[nowPtr]," ;value :%o",value[nowPtr]," ;Address : %h",dest[nowPtr]);
                        
                         end 
                     end 
                 end
-            else if(isIOread[nowPtr] == `TRUE && head != tail) begin 
+            else if(isIOread[nowPtr] && head != tail) begin 
                 if(status == IDLE) begin
                     status <= WAIT_MEM;
                     out_mem_load_flag <= `TRUE;
-                     //$display($time," [ROB] Start IO_READ : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]," ready : ",ready[nowPtr]);
+                     //$display($time," ROB-Start IO_READ : ",nowPtr," opcode: %b",op[nowPtr], " pc: %h",pcs[nowPtr]," ready : ",ready[nowPtr]);
                 end else if(status == WAIT_MEM) begin 
                     if(in_mem_flag == `TRUE) begin 
-                       // $display($time," [ROB] Finish IO_READ : ",nowPtr, " pc: %h",pcs[nowPtr]," data : %o",in_mem_data);
+                       // $display($time," ROB-Finish IO_READ : ",nowPtr, " pc: %h",pcs[nowPtr]," data : %o",in_mem_data);
                         status <= IDLE;                            
                         out_reg_index <= dest[nowPtr][`REG_POS_TYPE];
                         out_reg_rob_tag <= nowPtr;
@@ -293,7 +289,6 @@ assign testval=value[nowPtr];
             out_rob_tag <= `ZERO_ROB;
             out_mem_load_flag <= `FALSE;
             out_xbp <= `FALSE;
-            
             out_reg_index <= `ZERO_REG;
             out_mem_flag <= `FALSE;
             status <= IDLE;
