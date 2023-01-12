@@ -1,13 +1,6 @@
-// `include "D:/d/CPU/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 
-`include "D:\CPU\CxkPU\riscv\src\definition.v"
-//Hello everyone, I'm a self-trained mem Ctrler having been training for two and a half year.
-//I can do nothing but:
-//                      Chang
-//                      Tiao
-//                      Rap
-//                      Lanqiu
-//Now, let's have some music!!!!!
+// `include "D:\CPU\CxkPU\riscv\src\definition.v"
 module memCtrl(
     input clk,input rst,input rdy,
     
@@ -42,9 +35,9 @@ module memCtrl(
     input in_rob_xbp
 );
     localparam IDLE = 0,FETCHER_READ = 1,ROB_WRITE = 2,LSB_READ = 3,IO_READ = 4;
-    reg [1:0] wait_uart; // wait 2 cycle for uart_full signal reg fetcher_flag;
-    wire [2:0] buffered_status;
-    wire [`MEMPORT_TYPE] buffered_write_data;
+    reg [1:0] wait_uart; // wait 2 cycle for uart_full signal;
+    wire [2:0] buffered_status;//next status,waiting 
+    wire [`MEMPORT_TYPE] buffered_write_data;//next data, preload
     wire disable_to_write;
     reg lsb_flag;
     reg rob_flag;
@@ -69,13 +62,13 @@ module memCtrl(
     assign disable_to_write = (in_uart_full == `TRUE || wait_uart != 0 ) && (wb_addr[nowPtr][17:16] == 2'b11);
     wire test;
     assign test=(in_rob_flag)?`TRUE:`FALSE;
-    // Combinatorial logic
+    // next status
     assign buffered_status = (io_flag == `TRUE) ? IO_READ :
                             (wb_is_empty == `FALSE) ? ROB_WRITE : 
                             (lsb_flag == `TRUE) ? LSB_READ : 
                             (fetcher_flag == `TRUE) ? FETCHER_READ :
                              IDLE;
-
+    // next data
     assign buffered_write_data = (stages == 0) ? 0 :
                                 (stages == 1) ? wb_data[nowPtr][7:0] :
                                 (stages == 2) ? wb_data[nowPtr][15:8] : 

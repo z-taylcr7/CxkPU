@@ -1,16 +1,12 @@
-// `include "D:/CPU/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 
-`include "D:\CPU\CxkPU\riscv\src\definition.v"
+// `include "D:\CPU\CxkPU\riscv\src\definition.v"
 module lsb(
     input clk,input rst,input rdy,
 
-    // From fetcher to decide whether to fetch new instruction
     input in_fetcher_flag, 
-
-    // for fetcher to decide whether to fetch new instructions
     output out_fetcher_isidle,
 
-    // from decoder to store entry ,use rob_tag == `ZERO_ROB to decide whether store it in
     input [`ROB_POS_TYPE] in_decoder_rob_tag,
     input [`OPENUM_TYPE] in_decoder_op,
     input [`DATA_TYPE] in_decoder_value1,
@@ -21,9 +17,9 @@ module lsb(
 
     //output to ROB to check whether it can be issue to memory
     output [`DATA_TYPE] out_rob_now_addr,
-    input in_rob_check, // true for existence of memory address collision and false for none
+    input in_rob_check, //ensure that when it comes to mem collision(store before load), stop loading until storeInst commit
 
-    //from alu_cdb to update source value 
+    //from alu_cdb to update value 
     input [`ROB_POS_TYPE] in_alu_cdb_tag,
     input [`DATA_TYPE] in_alu_cdb_value,
 
@@ -34,7 +30,7 @@ module lsb(
     // to memory control 
     output reg out_mem_flag,
     output reg [5:0] out_mem_size,
-    output reg out_mem_signed,  // 0 for unsigned;1 for signed
+    output reg out_mem_signed,  
     output reg [`DATA_TYPE] out_mem_address,
 
     // from memory control 
@@ -42,10 +38,10 @@ module lsb(
     input [`DATA_TYPE] in_mem_data,
 
     // CDB to ROB/RS
-    output reg [`ROB_POS_TYPE] out_rob_tag, // Zero means Not to do anything
+    output reg [`ROB_POS_TYPE] out_rob_tag, 
     output reg [`DATA_TYPE] out_dest, // for store 
     output reg [`DATA_TYPE] out_value,
-    output reg out_io_in,   // true for 0x30000 read,false for normal load 
+    output reg out_io_in,   // true: 0x30000 read
 
     // from ROB to denote that br wrong
     input in_rob_xbp
@@ -56,7 +52,7 @@ module lsb(
     reg status; 
     reg busy[(`LSB_SIZE-1):0];
     
-    //fifo queueueueue
+    //fifo queue
     reg [`LSB_ID_TYPE] head;
     reg [`LSB_ID_TYPE] tail;
     wire [`LSB_ID_TYPE] nextPtr;
@@ -96,18 +92,23 @@ module lsb(
     endgenerate
     //ready to calculate address
     integer k;
-    always @(*) begin
-        
-        for(k=1;k<`LSB_SIZE;k=k+1)begin
-            if(ready_to_calculate_addr[k])begin
-                calculate_tag<=k;
-                break;
-            end
-            if(k==15)begin
-                calculate_tag<=`ZERO_LSB;
-            end
-        end
-    end
+    
+    assign calculate_tag = ready_to_calculate_addr[1] ? 1 : 
+                        ready_to_calculate_addr[2] ? 2 : 
+                        ready_to_calculate_addr[3] ? 3 :
+                        ready_to_calculate_addr[4] ? 4 :
+                        ready_to_calculate_addr[5] ? 5 :
+                        ready_to_calculate_addr[6] ? 6 :
+                        ready_to_calculate_addr[7] ? 7 : 
+                        ready_to_calculate_addr[8] ? 8 : 
+                        ready_to_calculate_addr[9] ? 9 :
+                        ready_to_calculate_addr[10] ? 10 :
+                        ready_to_calculate_addr[11] ? 11 :
+                        ready_to_calculate_addr[12] ? 12 :
+                        ready_to_calculate_addr[13] ? 13 :
+                        ready_to_calculate_addr[14] ? 14 :
+                        ready_to_calculate_addr[15] ? 15 : `ZERO_LSB;
+
 
     integer j;
     always @(posedge clk) begin 
@@ -126,7 +127,7 @@ module lsb(
             end
             status <= IDLE; 
         end else if(rdy == `TRUE && in_rob_xbp == `FALSE) begin
-            // Try to issue S/L instruction to ROB:
+            // Try to issue to ROB:
             out_rob_tag <= `ZERO_ROB;
             out_mem_flag <= `FALSE;
             out_dest <= `ZERO_WORD;

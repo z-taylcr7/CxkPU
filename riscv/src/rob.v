@@ -1,7 +1,7 @@
-// `include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 
 
-`include "D:\CPU\CxkPU\riscv\src\definition.v"
+// `include "D:\CPU\CxkPU\riscv\src\definition.v"
 module rob(
     input wire clk,
     //rst is currently false!
@@ -42,6 +42,7 @@ module rob(
     input in_lsb_io_in, // true for io read,false for normal load operation
 
     // asked by lsb whether exists address collision
+    // resolve store->load collision problems
     input [`DATA_TYPE] in_lsb_now_addr,
     output out_lsb_check,
 
@@ -103,6 +104,7 @@ module rob(
         assign out_decoder_fetch_ready2 = ready[in_decoder_fetch_tag2];
 
         
+    //ensure that when it comes to mem collision(store before load), stop loading until storeInst commit
     assign out_lsb_check = (isStore[1] && in_lsb_now_addr == dest[1])
                         || (isStore[2] && in_lsb_now_addr == dest[2])
                         || (isStore[3] && in_lsb_now_addr == dest[3])

@@ -1,9 +1,9 @@
-//`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
-`include "D:\CPU\CxkPU\riscv\src\definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+// `include "D:\CPU\CxkPU\riscv\src\definition.v"
 module ALU (
     input clk,input rst,input rdy,
     // input from rs 
-    input [`OPENUM_TYPE] in_op, // `NOP to do not calculate
+    input [`OPENUM_TYPE] in_op, 
     input [`DATA_TYPE] in_value1,
     input [`DATA_TYPE] in_value2,
     input [`DATA_TYPE] in_imm,
@@ -11,7 +11,7 @@ module ALU (
     input [`ROB_POS_TYPE] in_rob_tag,
     
     // output to rs/lsb/rob
-    output reg [`ROB_POS_TYPE] out_rob_tag, // `ZERO_TAG_ROB means receivers do not treat this data.
+    output reg [`ROB_POS_TYPE] out_rob_tag,
     output reg [`DATA_TYPE] out_value,
     output reg [`DATA_TYPE] out_newpc
 );

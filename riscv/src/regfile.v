@@ -1,7 +1,7 @@
-// `include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
 
 
-`include "D:\CPU\CxkPU\riscv\src\definition.v"
+// `include "D:\CPU\CxkPU\riscv\src\definition.v"
 module regfile(
      input wire clk,
     //rst is currently false!

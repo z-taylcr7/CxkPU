@@ -1,4 +1,5 @@
-`include "D:\CPU\CxkPU\riscv\src\definition.v"
+`include "/mnt/d/CPU/CxkPU/riscv/src/definition.v"
+// `include "D:\CPU\CxkPU\riscv\src\definition.v"
 module bp(
     input wire clk,
     input wire rst,
@@ -15,7 +16,7 @@ module bp(
 );
 
     reg [1:0] predictor_table [255:0];
-
+ assign out_fetcher_jump_res = predictor_table[in_fetcher_tag][1];
     integer i;
     always@(posedge clk) begin 
         if(rst) begin 
@@ -30,7 +31,7 @@ module bp(
                     predictor_table[in_rob_tag] <= predictor_table[in_rob_tag] + ((predictor_table[in_rob_tag] == 2'b00) ? 0 : -1);
                 end 
             end
-            out_fetcher_jump_res <= predictor_table[in_fetcher_tag][1];
+           
         end
     end
 endmodule
